@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pynbody
-
 # This script assumes you're using the demo data
 dens_fname = 'demo-data_reseed2_simulation_snapshots_density_Msol_kpc3_ics.npy'
 gadget_fname = 'demo-data_reseed2_simulation_snapshots_IC_doub_z99_256.gadget3'
