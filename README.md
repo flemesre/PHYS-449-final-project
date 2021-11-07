@@ -5,7 +5,7 @@ The project consists of a reproduction (and time permitting, potentially improve
 (https://arxiv.org/abs/2011.10577).
 
 ## Group members:
-* Finn Dodson
+* Finn Dodgson
 * Tristan Fraser
 * Cyrus Fung
 * François-Guillaume Lemesre
