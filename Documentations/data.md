@@ -9,6 +9,7 @@ python3 /mnt/d/Downloads/n8t.py
 ```
 
 ## Questions
+- Which file = IC?
 
 - What is `f['rho']`? shape (16777216,)
 
@@ -28,10 +29,6 @@ the code at `dlhalos_code/data_processing.py` seems to be referring to https://e
 
 how large can an array get?
 
-Which file = IC?
-RESOLVED: See: /scripts/number_halos.py, as the .gadget3 files are used for access of initial conditions
-
-
 ## Project questions
 
 ### 1
@@ -45,20 +42,6 @@ The initial velocity determines a lot of the dynamics/details?
 If we lose that information, we won't be able to predict the halo mass exactly?
 
 hence the variance?
-
-## Interpretation of data
-
-data looks like
-
-3.063454018339792188e+13
-
-8.097707056114916992e+11
-
-this looks like the dark matter halo mass M/M_stellar
-
-(Recall log(M/M_stellar) in [11,13.4])(log 10?)
-
-each number repeats several times, so if this is the halo mass, it makes sense, since each halo has many particles, so they should all share the same halo mass
 
 # Data format
 
@@ -124,15 +107,31 @@ the shape of the array is (16777216,)    (ie 1D array)
 
 Note that 256^3 = 16777216, this is consistent with the fact that each simulation has N = 256^3 dark matter particles.
 
-opening .npy files
+### Interpretation of data
+
+data looks like
+
+3.063454018339792188e+13
+
+8.097707056114916992e+11
+
+this looks like the dark matter halo mass M/M_stellar
+
+(Recall log(M/M_stellar) in [11,13.4])(log 10?)
+
+each number repeats several times, so if this is the halo mass, it makes sense, since each halo has many particles, so they should all share the same halo mass
+
+### opening .npy files
 
 https://stackoverflow.com/questions/53084637/how-do-you-open-npy-files?fbclid=IwAR0JfRhrgDDfHVfu4WFdl434iwSmeXFZ6dBadcA0xqBmAvvp5vSe-SMxKAo
 
 # Data processing
 
-Note that "the training set inputs were rescaled to have 0 mean and standard deviation 1"
+- Note that "the training set inputs were rescaled to have 0 mean and standard deviation 1"
 
-The halo masses "were rescaled to the range [−1, 1]"
+- The halo masses "were rescaled to the range [−1, 1]"
+
+- "The test set contains particles belonging to randomly-selected dark matter halos with mass log (𝑀/M_stellar) ∈ [11, 13.4]", so we only pick particles whose halos are in this range
 
 # Input to the CNN: 
 
