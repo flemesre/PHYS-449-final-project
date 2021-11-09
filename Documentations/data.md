@@ -10,9 +10,14 @@ this looks like the dark matter halo mass M/M_stellar
 
 (Recall log(M/M_stellar) in [11,13.4])(log 10?)
 
+## handling the file
 
-Input to the CNN: this format?
+opening .npy files
 
-(N, C_{in}, D, H, W)
+https://stackoverflow.com/questions/53084637/how-do-you-open-npy-files?fbclid=IwAR0JfRhrgDDfHVfu4WFdl434iwSmeXFZ6dBadcA0xqBmAvvp5vSe-SMxKAo
+
+## Input to the CNN: 
+
+this format? (N, C_{in}, D, H, W)
 
 https://pytorch.org/docs/stable/generated/torch.nn.Conv3d.html
