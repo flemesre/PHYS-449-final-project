@@ -100,18 +100,6 @@ the shape of the array is (16777216,)    (ie 1D array)
 Note that 256^3 = 16777216, this is consistent with the fact that each simulation has N = 256^3 dark matter particles.
 
 
-## Tracking
-
-sims_rescaled_density = ICs?
-
-but then it goes through preprocess_density_contrasts()? (line 475)
-
-which calls rescaled_qty_3d, first argument = simulation
-
-which is part of i, simulation in self.sims.items()
-
-but self.sims = sim_IDs
-
 ## Handling the file
 
 opening .npy files
