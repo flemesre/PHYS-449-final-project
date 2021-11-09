@@ -5,6 +5,13 @@ Source: https://console.cloud.google.com/storage/browser/deep-halos-data/full-da
 ## Questions
 Which file = IC?
 
+How to read .gadget3 files?
+
+In dlhalos_code/data_processing.py, used: 
+```
+pynbody.load(path1 + "IC_doub_z99_256.gadget3")
+```
+
 What is the training_simulation folder about?
 
 ## Interpretation of data
