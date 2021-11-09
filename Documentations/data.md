@@ -1,5 +1,3 @@
-# Data
-
 Data at: https://console.cloud.google.com/storage/browser/deep-halos-data/full-data?cloudshell=false&hl=en-AU&project=deephalos&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false
 
 ## Cut and paste
@@ -55,13 +53,13 @@ this looks like the dark matter halo mass M/M_stellar
 
 each number repeats several times, so if this is the halo mass, it makes sense, since each halo has many particles, so they should all share the same halo mass
 
-## Data format
+# Data format
 
-### ICs
+## ICs
 
 use this code: https://pynbody.github.io/pynbody/tutorials/data_access.html
 
-#### Overview
+### Overview
 
 `len(f)`,`len(f.dm)`: 16777216, same as the number in dark matter halo masses (consistency)
 
@@ -69,7 +67,7 @@ use this code: https://pynbody.github.io/pynbody/tutorials/data_access.html
 
 `f.loadable_keys()`,`f.dm.loadable_keys()`: `['iord', 'vel', 'mass', 'pos']`
 
-#### Keys
+### Keys
 
 iord is the "unique particle indexes" https://pynbody.github.io/pynbody/tutorials/bridge.html
 
@@ -99,7 +97,19 @@ the positions range from ~0 to ~50, this is consistent with the simulation being
 {'omegaM0': 0.279, 'omegaL0': 0.721, 'boxsize': Unit("5.00e+01 Mpc a h**-1"), 'a': 0.01, 'h': 0.701, 'time': Unit("1.26e-04 s Mpc a**1/2 h**-1 km**-1")}
 ```
 
-### Dark matter halo masses
+## Size of the file
+
+the halo mass file is 128 MB (one float for each particle)
+
+the IC file includes initial position, initial velocity, and density
+
+so each particle has `3+3+1=7` floats
+
+128 times 7 is 896, the exact size of the `.gadget3` file
+
+(technically it also contains the mass and index for each particle, but presumably they take up much less storage, since the mass is the same for all particles, and the index is the same as the index of the array)
+
+## Dark matter halo masses
 
 eg `data_reseed1_simulation_reseed1_halo_mass_particles.npy`
 
