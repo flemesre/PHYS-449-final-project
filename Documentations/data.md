@@ -12,7 +12,15 @@ this looks like the dark matter halo mass M/M_stellar
 
 each number repeats several times, so if this is the halo mass, it makes sense, since each halo has many particles, so they should all share the same halo mass
 
-## handling the file
+## Data format
+
+eg data_reseed1_simulation_reseed1_halo_mass_particles.npy
+
+the shape of the array is (16777216,)    (ie 1D array)
+
+Note that 256^3 = 16777216, this is consistent with the fact that each simulation has N = 256^3 dark matter particles.
+
+## Handling the file
 
 opening .npy files
 
