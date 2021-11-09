@@ -82,5 +82,5 @@ C:\Windows\System32\wsl.exe
 (This is only on my machine)
 
 ```
-Python3 /mnt/d/Downloads/n8t.py
+python3 /mnt/d/Downloads/n8t.py
 ```
