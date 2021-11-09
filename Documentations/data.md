@@ -53,3 +53,26 @@ Question: how large can an array get?
 this format? (N, C_{in}, D, H, W)
 
 https://pytorch.org/docs/stable/generated/torch.nn.Conv3d.html
+
+## Logistics
+
+pip install on windows doesn't work
+
+What u need to do:
+
+get WSL
+
+https://docs.microsoft.com/en-us/windows/wsl/install?fbclid=IwAR1VRQ9E1ui9wsLqiPP51mFS-T0h4JWYRCi6HYGRx6tjA6i-bHoGOFRa7so
+
+ubuntu will run automatically upon restart, set up account and password
+
+then use pip install pynbody
+
+to run code through PyCharm (installed on Windows), use
+
+https://www.jetbrains.com/help/pycharm/using-wsl-as-a-remote-interpreter.html#wsl-terminal
+
+Note that wsl.exe is at 
+```
+C:\Windows\System32\wsl.exe
+```
