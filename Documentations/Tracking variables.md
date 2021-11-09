@@ -44,7 +44,9 @@ downstream: `delta_sim = self.sims_rescaled_density[simulation_index]` in line 4
 
 eg in `scripts/raw_densities/training.py` line 20, `s = tn.SimulationPreparation(params.all_sims, path=params.path_sims)`
 
-but line 15 of `scripts/raw_densities/params_raw.py`
+note that `import params_avg as params` in line 12 as an exception
+
+but line 22 of `scripts/averaged_densities/params_avg.py`
 ```
 all_sims = ["%i" % i for i in np.arange(22)]
 all_sims.remove("3")
