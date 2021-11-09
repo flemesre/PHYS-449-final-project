@@ -21,7 +21,7 @@ width = self.res = 75 as fourth argument; line 464
 
 ## input_matrix
 
-`self.sims_rescaled_density` is initialized as `self.sims_rescaled_density = OrderedDict()` line 375
+`self.sims_rescaled_density` is initialized as `self.sims_rescaled_density = OrderedDict()` in line 375
 
 then called `self.preprocess_density_contrasts()` in line 376, defined in line 475, which sets
 ```
@@ -32,17 +32,23 @@ self.sims_rescaled_density[i] = self.rescaled_qty_3d(simulation, qty="den_contra
 
 `simulation` comes from `for i, simulation in self.sims.items()` in line 476
 
-`self.sims = sim_IDs` in line 28
+`self.sims = sim_IDs` in line 28 (see subsection)
+
+downstream: `delta_sim = self.sims_rescaled_density[simulation_index]` in line 461
+
+`input_matrix = delta_sim` as fifth argument in line 464
 
 ### sim_IDs
 
-`sim_IDs` is the second argument of `SimulationPreparation`
+`sim_IDs` is the first argument of `SimulationPreparation`
 
-eg in `scripts/raw_densities/training.py`, `sim_IDs=params.all_sims` first argument
+eg in `scripts/raw_densities/training.py` line 20, `s = tn.SimulationPreparation(params.all_sims, path=params.path_sims)`
 
-`delta_sim = self.sims_rescaled_density[simulation_index]` in line 461
-
-`input_matrix = delta_sim` as fifth argument in line 464
+but line 15 of `scripts/raw_densities/params_raw.py`
+```
+all_sims = ["%i" % i for i in np.arange(22)]
+all_sims.remove("3")
+```
 
 ## shape_input
 
