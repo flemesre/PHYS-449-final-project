@@ -21,6 +21,8 @@ python3 /mnt/d/Downloads/n8t.py
 
 the code at `dlhalos_code/data_processing.py` seems to be referring to https://en.wikipedia.org/wiki/Density_contrast?
 
+- Why does `dlhalos_code/data_processing.py`, DataGenerator (line 335) say `batch_size=80` even tho it says batch size = 64 in the paper?
+
 - What is the training_simulation folder about?
 
 `dlhalos_code/data_processing.py` mentions it
