@@ -12,6 +12,8 @@ In dlhalos_code/data_processing.py, used:
 pynbody.load(path1 + "IC_doub_z99_256.gadget3")
 ```
 
+How to install pynbody?
+
 What is the training_simulation folder about?
 
 ## Interpretation of data
