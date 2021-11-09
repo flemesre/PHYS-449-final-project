@@ -2,10 +2,20 @@
 
 Data at: https://console.cloud.google.com/storage/browser/deep-halos-data/full-data?cloudshell=false&hl=en-AU&project=deephalos&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false
 
+## Cut and paste
+
+(This is only on my machine)
+
+```
+python3 /mnt/d/Downloads/n8t.py
+```
+
 ## Questions
 Which file = IC?
 
 What is the training_simulation folder about?
+
+`dlhalos_code/data_processing.py` mentions it
 
 ## Interpretation of data
 
@@ -27,9 +37,19 @@ each number repeats several times, so if this is the halo mass, it makes sense, 
 
 use this code: https://pynbody.github.io/pynbody/tutorials/data_access.html
 
-`len(f)` gives 16777216, same as the number in dark matter halo masses (consistency)
+`len(f)`,`len(f.dm)`: 16777216, same as the number in dark matter halo masses (consistency)
 
-`f.families()` gives `[<Family dm>]`, ie only dark matter, as expected
+`f.families()`: `[<Family dm>]`, ie only dark matter, as expected
+
+`f.loadable_keys()`,`f.dm.loadable_keys()`: `['iord', 'vel', 'mass', 'pos']`
+
+iord is the "unique particle indexes" https://pynbody.github.io/pynbody/tutorials/bridge.html
+
+`f['pos']` has shape (16777216, 3), ie the 3D position of all 16777216 particles
+
+the positions range from  ~0.15704919, 0.0659477 to ~49.95991387
+
+this is consistent with the simulation being on a (50 Mpc ℎ^−1)^3 volume
 
 `f.properties` gives
 ```
@@ -38,7 +58,7 @@ use this code: https://pynbody.github.io/pynbody/tutorials/data_access.html
 
 ### Dark matter halo masses
 
-eg data_reseed1_simulation_reseed1_halo_mass_particles.npy
+eg `data_reseed1_simulation_reseed1_halo_mass_particles.npy`
 
 the shape of the array is (16777216,)    (ie 1D array)
 
@@ -80,10 +100,4 @@ https://www.jetbrains.com/help/pycharm/using-wsl-as-a-remote-interpreter.html#ws
 
 Note that wsl.exe is at `C:\Windows\System32\wsl.exe`
 
-## Cut and paste
 
-(This is only on my machine)
-
-```
-python3 /mnt/d/Downloads/n8t.py
-```
