@@ -19,11 +19,7 @@ this overrides the default `dim=(51, 51, 51)` in `class DataGenerator`, `def __i
 
 self.res = dim[0] = 51 line 365
 
-width = self.res = 51 as fourth argument; line 464
-
-so subbox side = 51? maybe only when they retrained the NN on potentials?
-
-actually in                               
+width = self.res = 51 as fourth argument; line 464                              
 
 ### input_matrix
 
