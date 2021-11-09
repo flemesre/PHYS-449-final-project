@@ -18,6 +18,10 @@ opening .npy files
 
 https://stackoverflow.com/questions/53084637/how-do-you-open-npy-files?fbclid=IwAR0JfRhrgDDfHVfu4WFdl434iwSmeXFZ6dBadcA0xqBmAvvp5vSe-SMxKAo
 
+the file is loaded as a numpy array?
+
+Question: how large can an array get?
+
 ## Input to the CNN: 
 
 this format? (N, C_{in}, D, H, W)
