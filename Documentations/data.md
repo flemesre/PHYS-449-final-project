@@ -25,11 +25,11 @@ the code at `dlhalos_code/data_processing.py` seems to be referring to https://e
 
 ### Resolved
 
-- how large can an array get?
+#### how large can an array get?
 
-much larger than our datasets
+much larger than our datasets, so not a concern
 
-- Why does `dlhalos_code/data_processing.py`, DataGenerator (line 335) say `batch_size=80` even tho it says batch size = 64 in the paper?
+#### Why does `dlhalos_code/data_processing.py`, DataGenerator (line 335) say `batch_size=80` even tho it says batch size = 64 in the paper?
 
 override by
 ```
