@@ -23,23 +23,28 @@ width = self.res = 75 as fourth argument; line 464
 
 ### input_matrix
 
-initialized as `self.sims_rescaled_density = OrderedDict()` line 375
+`self.sims_rescaled_density` is initialized as `self.sims_rescaled_density = OrderedDict()` line 375
 
-then called `self.preprocess_density_contrasts()` line 376
+then called `self.preprocess_density_contrasts()` in line 376, defined in line 475, which sets
+```
+self.sims_rescaled_density[i] = self.rescaled_qty_3d(simulation, qty="den_contrast")
+```
 
-which used `self.rescaled_qty_3d` line 477, which sets mean = 0 and sd = 1 line 479
+(`self.rescaled_qty_3d` is defined in line 479, which sets mean = 0 and sd = 1)
 
-it does this on `simulation` for `i, simulation in self.sims.items()`
+`simulation` comes from `for i, simulation in self.sims.items()` in line 476
 
-but `self.sims = sim_IDs` line 28
+`self.sims = sim_IDs` in line 28
 
-which is the second argument of `SimulationPreparation`
+#### sim_IDs
+
+`sim_IDs` is the second argument of `SimulationPreparation`
 
 eg in `scripts/raw_densities/training.py`, `sim_IDs=params.all_sims` first argument
 
-delta_sim = self.sims_rescaled_density[simulation_index]
+`delta_sim = self.sims_rescaled_density[simulation_index]` in line 461
 
-passed as fifth argument in line 464
+`input_matrix = delta_sim` as fifth argument in line 464
 
 ### shape_input
 
