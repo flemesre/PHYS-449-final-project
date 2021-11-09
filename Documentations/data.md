@@ -1,18 +1,9 @@
 # Data
 
-Source: https://console.cloud.google.com/storage/browser/deep-halos-data/full-data?cloudshell=false&hl=en-AU&project=deephalos&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false
+Data at: https://console.cloud.google.com/storage/browser/deep-halos-data/full-data?cloudshell=false&hl=en-AU&project=deephalos&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false
 
 ## Questions
 Which file = IC?
-
-How to read .gadget3 files?
-
-In dlhalos_code/data_processing.py, used: 
-```
-pynbody.load(path1 + "IC_doub_z99_256.gadget3")
-```
-
-How to install pynbody?
 
 What is the training_simulation folder about?
 
@@ -31,6 +22,21 @@ this looks like the dark matter halo mass M/M_stellar
 each number repeats several times, so if this is the halo mass, it makes sense, since each halo has many particles, so they should all share the same halo mass
 
 ## Data format
+
+### ICs
+
+use this code: https://pynbody.github.io/pynbody/tutorials/data_access.html
+
+`len(f)` gives 16777216, same as the number in dark matter halo masses (consistency)
+
+`f.families()` gives `[<Family dm>]`, ie only dark matter, as expected
+
+`f.properties` gives
+```
+{'omegaM0': 0.279, 'omegaL0': 0.721, 'boxsize': Unit("5.00e+01 Mpc a h**-1"), 'a': 0.01, 'h': 0.701, 'time': Unit("1.26e-04 s Mpc a**1/2 h**-1 km**-1")}
+```
+
+### Dark matter halo masses
 
 eg data_reseed1_simulation_reseed1_halo_mass_particles.npy
 
@@ -72,10 +78,7 @@ to run code through PyCharm (installed on Windows), use
 
 https://www.jetbrains.com/help/pycharm/using-wsl-as-a-remote-interpreter.html#wsl-terminal
 
-Note that wsl.exe is at 
-```
-C:\Windows\System32\wsl.exe
-```
+Note that wsl.exe is at `C:\Windows\System32\wsl.exe`
 
 ## Cut and paste
 
