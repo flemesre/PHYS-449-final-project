@@ -51,6 +51,11 @@ but line 22 of `scripts/averaged_densities/params_avg.py`
 all_sims = ["%i" % i for i in np.arange(22)]
 all_sims.remove("3")
 ```
+This looks like
+```
+['0', '1', '2', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21']
+```
+a 1D list, NOT the 3D density field we need??
 
 ## shape_input
 
