@@ -97,7 +97,7 @@ the positions range from ~0 to ~50, this is consistent with the simulation being
 {'omegaM0': 0.279, 'omegaL0': 0.721, 'boxsize': Unit("5.00e+01 Mpc a h**-1"), 'a': 0.01, 'h': 0.701, 'time': Unit("1.26e-04 s Mpc a**1/2 h**-1 km**-1")}
 ```
 
-## Size of the file
+### Size of the file
 
 the halo mass file is 128 MB (one float for each particle)
 
