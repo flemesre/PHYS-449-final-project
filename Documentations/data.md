@@ -135,6 +135,28 @@ each number repeats several times, so if this is the halo mass, it makes sense, 
 
 https://stackoverflow.com/questions/53084637/how-do-you-open-npy-files?fbclid=IwAR0JfRhrgDDfHVfu4WFdl434iwSmeXFZ6dBadcA0xqBmAvvp5vSe-SMxKAo
 
+# Getting the initial density
+
+Maybe `f['rho']` represents the initial density of the voxel occupied by that particle?
+
+The code provides a way to map the 1D index of the particles to the 3D coords
+
+`i, j, k = np.unravel_index`, then `np.column_stack((i, j, k))` in line 97
+
+Similarly the code has a way to map the 1D densities into a 3D density field?
+
+`d.reshape(self.shape_sim, self.shape_sim, self.shape_sim)` in line 481
+
+## Problems
+
+The above assumes the initial positions of the particles = 256^3 grid, perfectly?
+
+Since the subboxes are supposed to center at each particle?
+
+But there won't be any structure formation? (ignoring non uniform initial velocity)
+
+Unless the difference from being a perfect grid/initial nonuniformity is small?
+
 # Data processing
 
 - Note that "the training set inputs were rescaled to have 0 mean and standard deviation 1"
