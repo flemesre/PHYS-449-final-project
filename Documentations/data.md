@@ -37,7 +37,7 @@ params_tr = {'batch_size': 64, 'rescale_mean': 1.005, 'rescale_std': 0.05050, 'd
 
 #### Which file = IC?
 
-`.gadget3', tho the data processing generates `density_Msol_kpc3_ics.npy`, so u don't hv to process the data every time
+`.gadget3`, tho the data processing generates `density_Msol_kpc3_ics.npy`, so u don't hv to process the data every time
 
 ## Project questions
 
