@@ -9,3 +9,7 @@ The project consists of a reproduction (and time permitting, potentially improve
 * Tristan Fraser
 * Cyrus Fung
 * François-Guillaume Lemesre
+
+DATA: https://console.cloud.google.com/storage/browser/deep-halos-data;tab=objects?forceOnBucketsSortingFiltering=false&cloudshell=false&hl=en-AU&project=deephalos&prefix=&forceOnObjectsSortingFiltering=false
+
+Github: https://github.com/lluciesmith/DeepHalos
