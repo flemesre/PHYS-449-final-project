@@ -17,6 +17,18 @@ What is the training_simulation folder about?
 
 `dlhalos_code/data_processing.py` mentions it
 
+## Project questions
+
+What if the variance is large bcuz the NN doesn't have access to the velocity?
+
+The initial density is not the only determining factor?
+
+The initial velocity determines a lot of the dynamics/details?
+
+If we lose that information, we won't be able to predict the halo mass exactly?
+
+hence the variance?
+
 ## Interpretation of data
 
 data looks like
