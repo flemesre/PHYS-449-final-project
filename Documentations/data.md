@@ -9,7 +9,6 @@ python3 /mnt/d/Downloads/n8t.py
 ```
 
 ## Questions
-- Which file = IC?
 
 - What is `f['rho']`? shape (16777216,)
 
@@ -35,6 +34,10 @@ override by
 ```
 params_tr = {'batch_size': 64, 'rescale_mean': 1.005, 'rescale_std': 0.05050, 'dim': dim}
 ```
+
+#### Which file = IC?
+
+`.gadget3', tho the data processing generates `density_Msol_kpc3_ics.npy`, so u don't hv to process the data every time
 
 ## Project questions
 
