@@ -157,6 +157,19 @@ But there won't be any structure formation? (ignoring non uniform initial veloci
 
 Unless the difference from being a perfect grid/initial nonuniformity is small?
 
+## Computing the density
+
+- divide the 1D `f('rho')` by `rho_m`, where in line 91
+```
+rho_m = pynbody.analysis.cosmology.rho_M(snapshot, unit=snapshot["rho"].units)
+```
+
+- use `np.unravel_index`, `np.column_stack` to write the coords of the particles as a 3-tuple
+
+- normalize (set mean = 0, sd = 1)(technically this can be done after the data has been converted into a tensor)
+
+- implement sth like `compute_subbox` (line 485) to calculate the sub box around each particle
+
 # Data processing
 
 - Note that "the training set inputs were rescaled to have 0 mean and standard deviation 1"
