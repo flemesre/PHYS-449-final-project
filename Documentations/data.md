@@ -9,7 +9,6 @@ python3 /mnt/d/Downloads/n8t.py
 ```
 
 ## Questions
-- Which file = IC?
 
 - What is `f['rho']`? shape (16777216,)
 
@@ -28,6 +27,10 @@ the code at `dlhalos_code/data_processing.py` seems to be referring to https://e
 ### Resolved
 
 how large can an array get?
+
+Which file = IC?
+RESOLVED: See: /scripts/number_halos.py, as the .gadget3 files are used for access of initial conditions
+
 
 ## Project questions
 
