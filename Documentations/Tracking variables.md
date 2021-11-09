@@ -1,8 +1,6 @@
-# Tracking
+# compute_subbox
 
-## compute_subbox
-
-### width
+## width
 
 `scripts/raw_densities/params_raw.py`, line 24, `dim = (75, 75, 75)`, then line 25
 ```
@@ -21,7 +19,7 @@ self.res = dim[0] = 75 line 365
 
 width = self.res = 75 as fourth argument; line 464                              
 
-### input_matrix
+## input_matrix
 
 `self.sims_rescaled_density` is initialized as `self.sims_rescaled_density = OrderedDict()` line 375
 
@@ -36,7 +34,7 @@ self.sims_rescaled_density[i] = self.rescaled_qty_3d(simulation, qty="den_contra
 
 `self.sims = sim_IDs` in line 28
 
-#### sim_IDs
+### sim_IDs
 
 `sim_IDs` is the second argument of `SimulationPreparation`
 
@@ -46,13 +44,13 @@ eg in `scripts/raw_densities/training.py`, `sim_IDs=params.all_sims` first argum
 
 `input_matrix = delta_sim` as fifth argument in line 464
 
-### shape_input
+## shape_input
 
 self.shape_sim = (256^3)^(1/3) = 256 line 96
 
 passed as seventh argument in line 464
 
-## sims_rescaled_density = ICs?
+# sims_rescaled_density = ICs?
 
 but then it goes through preprocess_density_contrasts()? (line 475)
 
