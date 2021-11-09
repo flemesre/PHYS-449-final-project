@@ -10,6 +10,8 @@ this looks like the dark matter halo mass M/M_stellar
 
 (Recall log(M/M_stellar) in [11,13.4])(log 10?)
 
+each number repeats several times, so if this is the halo mass, it makes sense, since each halo has many particles, so they should all share the same halo mass
+
 ## handling the file
 
 opening .npy files
