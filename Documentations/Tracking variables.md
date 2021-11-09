@@ -1,3 +1,37 @@
+# Where is the 256^3 density field?
+
+## self.prepare_sim
+
+defined in line 108, returns `snapshot`
+
+- `snapshot['den_contrast']` is the density contrast, ie `f['rho']` unscaled by some density scale
+
+- `snapshot['coords']` is an array where the index of the particle gets mapped to a 3-tuple, its coordinates
+
+compare `sim[qty]=simulation["den_contrast"]` in line 477
+
+this is the only place where `simulation["den_contrast"]` could have been initialized
+
+## Where is `snapshot` passed to?
+
+`snapshot_i = self.prepare_sim(snapshot_i, ID, potential=self.potential)` in line 41
+
+`sims_dic[ID] = snapshot_i` in line 42
+
+`self.sims_dic = sims_dic` in line 44
+
+## Problem
+
+The problem is in `for i, simulation in self.sims.items()` in line 476, `simulation` would be a number, NOT `snapshot`
+
+It will make much more sense if `self.sims` is actually `self.sims_dic`
+
+Also `self.sims_dic` doesn't show up anywhere else in the code after it, why would they go through so much computation and not use it?
+
+They probably changed `self.sims` to `self.sims_dic` at some point
+
+And they never found out this bug, since the `density_Msol_kpc3_ics.npy` files would have been generated
+
 # compute_subbox
 
 ## width
@@ -15,9 +49,9 @@ generator_training = tn.DataGenerator(params.training_particle_IDs, params.train
 
 this overrides the default `dim=(51, 51, 51)` in `class DataGenerator`, `def __init__` in line 337
 
-self.res = dim[0] = 75 line 365
+`self.res = dim[0]` = 75 in line 365
 
-width = self.res = 75 as fourth argument; line 464                              
+`width = self.res` = 75 as fourth argument in line 464                              
 
 ## input_matrix
 
@@ -41,6 +75,13 @@ downstream: `delta_sim = self.sims_rescaled_density[simulation_index]` in line 4
 ### self.rescaled_qty_3d
 
 `self.rescaled_qty_3d` is defined in line 479, which sets mean = 0 and sd = 1
+
+`d` rescales `sim[qty]` so that its mean = 0 and sd = 1
+
+`sim[qty]=simulation["den_contrast"]` (line 477)
+
+`self.rescaled_qty_3d` returns `d.reshape()`, turning the 1D array into a 3D array
+
 
 ### sim_IDs
 
