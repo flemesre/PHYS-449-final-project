@@ -25,6 +25,10 @@ the code at `dlhalos_code/data_processing.py` seems to be referring to https://e
 
 `dlhalos_code/data_processing.py` mentions it
 
+### Resolved
+
+how large can an array get?
+
 ## Project questions
 
 ### 1
@@ -117,30 +121,23 @@ the shape of the array is (16777216,)    (ie 1D array)
 
 Note that 256^3 = 16777216, this is consistent with the fact that each simulation has N = 256^3 dark matter particles.
 
-
-## Handling the file
-
 opening .npy files
 
 https://stackoverflow.com/questions/53084637/how-do-you-open-npy-files?fbclid=IwAR0JfRhrgDDfHVfu4WFdl434iwSmeXFZ6dBadcA0xqBmAvvp5vSe-SMxKAo
 
-the file is loaded as a numpy array?
-
-Question: how large can an array get?
-
-## Data processing
+# Data processing
 
 Note that "the training set inputs were rescaled to have 0 mean and standard deviation 1"
 
 The halo masses "were rescaled to the range [−1, 1]"
 
-## Input to the CNN: 
+# Input to the CNN: 
 
 this format? (N, C_{in}, D, H, W)
 
 https://pytorch.org/docs/stable/generated/torch.nn.Conv3d.html
 
-## Logistics
+# Logistics
 
 pip install on windows doesn't work
 
