@@ -5,6 +5,8 @@ Source: https://console.cloud.google.com/storage/browser/deep-halos-data/full-da
 ## Questions
 Which file = IC?
 
+What is the training_simulation folder about?
+
 ## Interpretation of data
 
 data looks like
