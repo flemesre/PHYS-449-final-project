@@ -28,15 +28,19 @@ then called `self.preprocess_density_contrasts()` in line 376, defined in line 4
 self.sims_rescaled_density[i] = self.rescaled_qty_3d(simulation, qty="den_contrast")
 ```
 
-(`self.rescaled_qty_3d` is defined in line 479, which sets mean = 0 and sd = 1)
+(see `self.rescaled_qty_3d` subsection)
 
 `simulation` comes from `for i, simulation in self.sims.items()` in line 476
 
-`self.sims = sim_IDs` in line 28 (see subsection)
+`self.sims = sim_IDs` in line 28 (see `sim_IDs` subsection)
 
 downstream: `delta_sim = self.sims_rescaled_density[simulation_index]` in line 461
 
 `input_matrix = delta_sim` as fifth argument in line 464
+
+### self.rescaled_qty_3d
+
+`self.rescaled_qty_3d` is defined in line 479, which sets mean = 0 and sd = 1
 
 ### sim_IDs
 
