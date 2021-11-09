@@ -13,6 +13,12 @@ python3 /mnt/d/Downloads/n8t.py
 ## Questions
 Which file = IC?
 
+What is `f['rho']`? shape (16777216,)
+
+```
+[8.71521693 9.01770152 8.95625682 ... 8.32570976 7.93963564 7.73320551]
+```
+
 What is the training_simulation folder about?
 
 `dlhalos_code/data_processing.py` mentions it
