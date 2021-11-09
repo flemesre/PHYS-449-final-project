@@ -61,6 +61,8 @@ iord is the "unique particle indexes" https://pynbody.github.io/pynbody/tutorial
 
 the positions range from  ~0.15704919, 0.0659477 to ~49.95991387
 
+`f['mass']` has shape (16777216,), all entries are 0.05774662 (same mass for all particles)
+
 this is consistent with the simulation being on a (50 Mpc ℎ^−1)^3 volume
 
 `f.properties` gives
