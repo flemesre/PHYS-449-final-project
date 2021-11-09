@@ -25,6 +25,8 @@ What is the training_simulation folder about?
 
 ## Project questions
 
+### 1
+
 What if the variance is large bcuz the NN doesn't have access to the velocity?
 
 The initial density is not the only determining factor?
@@ -93,6 +95,12 @@ https://stackoverflow.com/questions/53084637/how-do-you-open-npy-files?fbclid=Iw
 the file is loaded as a numpy array?
 
 Question: how large can an array get?
+
+## Data processing
+
+Note that "the training set inputs were rescaled to have 0 mean and standard deviation 1"
+
+The halo masses "were rescaled to the range [−1, 1]"
 
 ## Input to the CNN: 
 
