@@ -76,3 +76,11 @@ Note that wsl.exe is at
 ```
 C:\Windows\System32\wsl.exe
 ```
+
+## Cut and paste
+
+(This is only on my machine)
+
+```
+Python 3 /mnt/d/Downloads/n8t.py
+```
