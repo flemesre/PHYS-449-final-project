@@ -11,15 +11,17 @@ python3 /mnt/d/Downloads/n8t.py
 ```
 
 ## Questions
-Which file = IC?
+- Which file = IC?
 
-What is `f['rho']`? shape (16777216,)
+- What is `f['rho']`? shape (16777216,)
 
 ```
 [8.71521693 9.01770152 8.95625682 ... 8.32570976 7.93963564 7.73320551]
 ```
 
-What is the training_simulation folder about?
+the code at `dlhalos_code/data_processing.py` seems to be referring to https://en.wikipedia.org/wiki/Density_contrast?
+
+- What is the training_simulation folder about?
 
 `dlhalos_code/data_processing.py` mentions it
 
@@ -57,13 +59,22 @@ each number repeats several times, so if this is the halo mass, it makes sense, 
 
 use this code: https://pynbody.github.io/pynbody/tutorials/data_access.html
 
+#### Overview
+
 `len(f)`,`len(f.dm)`: 16777216, same as the number in dark matter halo masses (consistency)
 
 `f.families()`: `[<Family dm>]`, ie only dark matter, as expected
 
 `f.loadable_keys()`,`f.dm.loadable_keys()`: `['iord', 'vel', 'mass', 'pos']`
 
+#### Keys
+
 iord is the "unique particle indexes" https://pynbody.github.io/pynbody/tutorials/bridge.html
+
+`f['iord']`: shape is (16777216,), just indexing particles from 0 to 16777215
+```
+[       0        1        2 ... 16777213 16777214 16777215]
+```
 
 `f['pos']` has shape (16777216, 3), ie the 3D position of all 16777216 particles
 
