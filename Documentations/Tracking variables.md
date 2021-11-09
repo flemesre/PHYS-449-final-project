@@ -17,9 +17,9 @@ generator_training = tn.DataGenerator(params.training_particle_IDs, params.train
 
 this overrides the default `dim=(51, 51, 51)` in `class DataGenerator`, `def __init__` in line 337
 
-self.res = dim[0] = 51 line 365
+self.res = dim[0] = 75 line 365
 
-width = self.res = 51 as fourth argument; line 464                              
+width = self.res = 75 as fourth argument; line 464                              
 
 ### input_matrix
 
