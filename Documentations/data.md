@@ -19,15 +19,22 @@ python3 /mnt/d/Downloads/n8t.py
 
 the code at `dlhalos_code/data_processing.py` seems to be referring to https://en.wikipedia.org/wiki/Density_contrast?
 
-- Why does `dlhalos_code/data_processing.py`, DataGenerator (line 335) say `batch_size=80` even tho it says batch size = 64 in the paper?
-
 - What is the training_simulation folder about?
 
 `dlhalos_code/data_processing.py` mentions it
 
 ### Resolved
 
-how large can an array get?
+- how large can an array get?
+
+much larger than our datasets
+
+- Why does `dlhalos_code/data_processing.py`, DataGenerator (line 335) say `batch_size=80` even tho it says batch size = 64 in the paper?
+
+override by
+```
+params_tr = {'batch_size': 64, 'rescale_mean': 1.005, 'rescale_std': 0.05050, 'dim': dim}
+```
 
 ## Project questions
 
