@@ -23,6 +23,9 @@ if __name__ == '__main__':
     subbox_length = 75
     num_particles = sim_length ** 3
 
+    log_low_mass_limit = 11
+    log_high_mass_limit = 13.4
+
     # do I need to use open() for better file handling?
 
     try:
@@ -31,8 +34,7 @@ if __name__ == '__main__':
         print("Loaded initial density field")
 
     except OSError: #FileNotFoundError
-        print('3d_den.pt not found')
-        print('Loading den_contrast_1.npy')
+        print('3d_den.pt not found, creating 3d_den.pt')
         den_contrast = torch.tensor(np.load(path+'den_contrast_1.npy')).to(device)
 
         # normalization: set mean = 0, sd = 1
@@ -44,13 +46,41 @@ if __name__ == '__main__':
         torch.save(_3d_den, path+'3d_den.pt')
         print('3d_den.py created')
 
-
     # prepare coords
     iord = range(sim_length ** 3)
     i, j, k = np.unravel_index(iord, (sim_length, sim_length, sim_length))
     coords = np.column_stack((i, j, k))
 
-    for I in range(10):
-        i0, j0, k0 = coords[I,0], coords[I,1], coords[I,2]
-        print(i0,j0,k0)
-        print(compute_subbox(i0, j0, k0, _3d_den).shape)
+    # for I in range(10):
+    #     i0, j0, k0 = coords[I,0], coords[I,1], coords[I,2]
+    #     print(i0,j0,k0)
+    #     print(compute_subbox(i0, j0, k0, _3d_den).shape)
+
+    # loading halo masses
+    halo_mass = np.load(path+'full-data_reseed1_simulation_reseed1_halo_mass_particles.npy')
+    print('Loaded halo masses')
+
+    # sim_1_list.npy contains the indices of the particles that fall within the mass range
+    try:
+        print("Attempting to load sim_1_list.npy")
+        sim_1_list = np.load(path+'sim_1_list.npy')
+        print("Loaded the list of training particles")
+
+    except OSError: #FileNotFoundError
+        print('sim_1_list.npy not found, creating sim_1_list.npy')
+        sim_1_list0 = []
+        for I in range(num_particles):
+            if halo_mass[I] > 1:
+                log_mass = np.log10(halo_mass[I])
+                if log_mass <= log_high_mass_limit and log_mass >= log_low_mass_limit:
+                    sim_1_list0.append(I)
+            if I % 1e6 == 0:
+                print(f"{I} particles processed")
+
+        sim_1_list = np.array(sim_1_list0)
+        np.save(path+'sim_1_list.npy', sim_1_list)
+        print('sim_1_list.npy created')
+
+    print(f"{sim_1_list.size} out of {num_particles} particles fall within the mass range")
+
+    trial = _3d_den.to(dtype=torch.float32)
