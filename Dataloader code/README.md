@@ -6,7 +6,7 @@
 Note that the dataloader only takes one simulation as input right now
 
 ## 2
-run `load_data_from_pynbody.py` to convert pynbody files into things numpy can recognize
+run `load_data_from_pynbody.py` to convert pynbody files into things numpy/pytorch can recognize
 - note that you will need to change `path` depending on your local machine
 
 ## 3
