@@ -18,6 +18,8 @@ python3 /mnt/d/Downloads/n8t.py
 
 the code at `dlhalos_code/data_processing.py` seems to be referring to https://en.wikipedia.org/wiki/Density_contrast?
 
+- the way `compute_subbox` works, it is like the simulation is using cyclic boundary conditions?
+
 - What is the training_simulation folder about?
 
 `dlhalos_code/data_processing.py` mentions it
