@@ -168,9 +168,11 @@ rho_m = pynbody.analysis.cosmology.rho_M(snapshot, unit=snapshot["rho"].units)
 
 - Note that "the training set inputs were rescaled to have 0 mean and standard deviation 1"
 
-- The halo masses "were rescaled to the range [−1, 1]"
-
 - "The test set contains particles belonging to randomly-selected dark matter halos with mass log (𝑀/M_stellar) ∈ [11, 13.4]", so we only pick particles whose halos are in this range
+
+-the ground truth variable uses "the logarithmic mass of the dark matter halo"
+
+- The halo masses "were rescaled to the range [−1, 1]"
 
 # Input to the CNN: 
 
