@@ -15,7 +15,7 @@ def compute_subbox(i0, j0, k0, input_matrix):
 class TrainingDataset(torch.utils.data.Dataset):
 
     def __init__(self):
-        self.output_data = torch.tensor(halo_mass).to(device, dtype=torch.float32)
+        self.output_data = norm_halo_mass.to(device, dtype=torch.float32)
 
     def __len__(self):
         return test_num_particles
@@ -28,7 +28,7 @@ class TrainingDataset(torch.utils.data.Dataset):
         i0, j0, k0 = coords[J, 0], coords[J, 1], coords[J, 2]
         subbox = compute_subbox(i0, j0, k0, _3d_den)
         input_data = torch.tensor(subbox).to(device, dtype=torch.float32)
-        return torch.unsqueeze(input_data, 0), self.output_data[sim_1_list[idx]]
+        return torch.unsqueeze(input_data, 0), self.output_data[idx]
 
 
 if __name__ == '__main__':
@@ -107,12 +107,12 @@ if __name__ == '__main__':
     print()
 
     try:
-        print("Attempting to load norm_halo_mass.npy")
-        norm_halo_mass = np.load(path+'norm_halo_mass.npy')
+        print("Attempting to load norm_halo_mass.npt")
+        norm_halo_mass = torch.load(path+'norm_halo_mass.npt').to(device)
         print("Loaded the normalized halo masses")
 
     except OSError: #FileNotFoundError
-        print('norm_halo_mass.npy not found, creating norm_halo_mass.npy')
+        print('norm_halo_mass.npy not found, creating norm_halo_mass.npt')
         # creating restricted_halo_mass, which uses the log mass
         # removing the particles in halo_mass that are outside of the mass range
         restricted_halo_mass = torch.tensor(np.zeros(test_num_particles)).to(device0)
@@ -128,18 +128,14 @@ if __name__ == '__main__':
         norm_halo_mass -= (max_mass-min_mass)/2
         norm_halo_mass = norm_halo_mass * (2/(max_mass-min_mass))
 
-        print(torch.min(norm_halo_mass))
-        print(torch.max(norm_halo_mass))
-
-        # sim_1_list = np.array(sim_1_list0)
-        # np.save(path+'sim_1_list.npy', sim_1_list)
-        # print('sim_1_list.npy created')
+        torch.save(norm_halo_mass, path+'norm_halo_mass.npt')
+        print('norm_halo_mass.npt created')
     print()
 
     train_dataset = TrainingDataset()
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=Batch_size, shuffle=True)
 
-    # for batch, (_x, _y) in enumerate(train_dataloader):
-    #     print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}")
-    #     # print(_x)
-    #     print(_y)
+    for batch, (_x, _y) in enumerate(train_dataloader):
+        print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}")
+        # print(_x)
+        print(_y)
