@@ -189,6 +189,12 @@ this format? (N, C_{in}, D, H, W)
 
 https://pytorch.org/docs/stable/generated/torch.nn.Conv3d.html
 
+N = batch size (compare https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html)
+
+C_{in} = number of input channels
+
+D, H, W = x, y, z (the order doesn't matter, since the CNN doesn't have a preference)
+
 # Logistics
 
 pip install on windows doesn't work
