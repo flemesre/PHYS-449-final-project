@@ -102,18 +102,6 @@ the positions range from ~0 to ~50, this is consistent with the simulation being
 {'omegaM0': 0.279, 'omegaL0': 0.721, 'boxsize': Unit("5.00e+01 Mpc a h**-1"), 'a': 0.01, 'h': 0.701, 'time': Unit("1.26e-04 s Mpc a**1/2 h**-1 km**-1")}
 ```
 
-### Size of the file
-
-the halo mass file is 128 MB (one float for each particle)
-
-the IC file includes initial position, initial velocity, and density
-
-so each particle has `3+3+1=7` floats
-
-128 times 7 is 896, the exact size of the `.gadget3` file
-
-(technically it also contains the mass and index for each particle, but presumably they take up much less storage, since the mass is the same for all particles, and the index is the same as the index of the array)
-
 ## Dark matter halo masses
 
 eg `data_reseed1_simulation_reseed1_halo_mass_particles.npy`
@@ -194,6 +182,24 @@ N = batch size (compare https://pytorch.org/docs/stable/generated/torch.nn.Conv2
 C_{in} = number of input channels
 
 D, H, W = x, y, z (the order doesn't matter, since the CNN doesn't have a preference)
+
+# Consistency checks
+
+## Size of the file
+
+the halo mass file is 128 MB (one float for each particle)
+
+the IC file includes initial position, initial velocity, and density
+
+so each particle has `3+3+1=7` floats
+
+128 times 7 is 896, the exact size of the `.gadget3` file
+
+(technically it also contains the mass and index for each particle, but presumably they take up much less storage, since the mass is the same for all particles, and the index is the same as the index of the array)
+
+## density contrast
+
+after unscaling the density contrast, we get a value around 1, which seems like what you should get after nondimensionalziation
 
 # Logistics
 
