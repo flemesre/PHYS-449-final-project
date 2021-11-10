@@ -121,7 +121,7 @@ data looks like
 
 this looks like the dark matter halo mass M/M_stellar
 
-(Recall log(M/M_stellar) in [11,13.4])(log 10?)
+(Recall log(M/M_stellar) in [11,13.4])(Note that the authors' code use log10)
 
 each number repeats several times, so if this is the halo mass, it makes sense, since each halo has many particles, so they should all share the same halo mass
 
