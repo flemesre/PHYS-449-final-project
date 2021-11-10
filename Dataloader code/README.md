@@ -1,2 +1,2 @@
-- run `load_data_from_pynbody.py` to convert things into `.txt'
+- run `load_data_from_pynbody.py` to convert things into `.txt`
 - then run `dataloader_1.py` to do the data processing 
