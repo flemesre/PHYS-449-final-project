@@ -5,7 +5,7 @@ Data at: https://console.cloud.google.com/storage/browser/deep-halos-data/full-d
 (This is only on my machine)
 
 ```
-python3 /mnt/c/Python projects/data test/dataloader_1.py
+python3 /mnt/c/Python_projects/data_test/dataloader_1.py
 ```
 ```
 python3 /mnt/d/Downloads/n8t.py
