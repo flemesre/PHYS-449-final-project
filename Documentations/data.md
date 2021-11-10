@@ -12,6 +12,8 @@ python3 /mnt/d/Downloads/n8t.py
 
 ## Questions
 
+- are the particles given the same index in `.gadget3` and `halo_masses_particles.npy`?
+
 - What is `f['rho']`? shape (16777216,)
 
 ```
