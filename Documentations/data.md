@@ -182,9 +182,9 @@ https://pytorch.org/docs/stable/generated/torch.nn.Conv3d.html
 
 N = batch size (compare https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html)
 
-C_{in} = number of input channels
+C_{in} = number of input channels, size = 1
 
-D, H, W = x, y, z (the order doesn't matter, since the CNN doesn't have a preference)
+D, H, W = x, y, z (the order doesn't matter, since the CNN doesn't have a preference), size = 75
 
 # Consistency checks
 
