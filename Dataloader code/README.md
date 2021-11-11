@@ -1,0 +1,2 @@
+- Ver 1 is the basic version, only works for one simulation
+- Ver 2 supports multiple simulations and includes the test dataloader. While it works, I haven't tested it as thoroughly as Ver 1
