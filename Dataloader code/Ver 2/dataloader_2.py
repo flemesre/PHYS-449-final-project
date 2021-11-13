@@ -53,12 +53,12 @@ def data_processing(index):
 
     for sim_index in sims:
         try:
-            print("Attempting to load 3d_den"+str(sim_index)+".pt")
-            _3d_den0 = torch.load(path + '3d_den'+str(sim_index)+'.pt').to(device0)
+            print("Attempting to load 3d_den_pad"+str(sim_index)+".pt")
+            _3d_den_pad = torch.load(path + '3d_den_pad'+str(sim_index)+'.pt').to(device0)
             print("Loaded initial density field "+str(sim_index))
 
         except OSError:  # FileNotFoundError
-            print('3d_den'+str(sim_index)+'.pt not found, creating 3d_den'+str(sim_index)+'.pt')
+            print('3d_den_pad'+str(sim_index)+'.pt not found, creating 3d_den_pad'+str(sim_index)+'.pt')
             den_contrast = torch.tensor(np.load(path + 'den_contrast_'+str(sim_index)+'.npy')).to(device0)
 
             # normalization: set mean = 0, sd = 1
@@ -67,10 +67,22 @@ def data_processing(index):
             # maps 1D density array to 3D field
             _3d_den0 = norm_den_contrast.reshape(sim_length, sim_length, sim_length)
 
-            torch.save(_3d_den0, path + '3d_den'+str(sim_index)+'.pt')
-            print('3d_den'+str(sim_index)+'.py created')
+            pad_den_size = sim_length + subbox_pad*2
+            _3d_den_pad = torch.tensor(np.zeros((pad_den_size, pad_den_size, pad_den_size))).to(device0)
+
+            for i in range(pad_den_size):
+                for j in range(pad_den_size):
+                    for k in range(pad_den_size):
+                        _3d_den_pad[i, j, k] = _3d_den0[
+                            (i-subbox_pad) % sim_length,
+                            (j-subbox_pad) % sim_length, (k-subbox_pad) % sim_length]
+                if i % 2 == 0:
+                    print(f"{i+1} out of {pad_den_size} slices completed")
+
+            torch.save(_3d_den_pad, path + '3d_den_pad'+str(sim_index)+'.pt')
+            print('3d_den_pad'+str(sim_index)+'.py created')
         print()
-        _3d_DEN.append(_3d_den0)
+        _3d_DEN.append(_3d_den_pad)
 
         try:
             print("Attempting to load norm_halo_mass"+str(sim_index)+".npt")
@@ -139,8 +151,10 @@ class TrainingDataset(torch.utils.data.Dataset):
         sim_num, idx = which_sim(raw_idx)
         J = sim_list[sim_num-1][idx]
 
-        i0, j0, k0 = coords[J, 0], coords[J, 1], coords[J, 2]
-        subbox = compute_subbox(i0, j0, k0, _3d_den[sim_num-1])
+        i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
+        subbox = _3d_den[sim_num - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
+                 j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
+
         input_data = torch.tensor(subbox).to(device, dtype=torch.float32)
         return torch.unsqueeze(input_data, 0), self.output_data[sim_num-1][idx]
 
@@ -163,10 +177,10 @@ class TestingDataset(torch.utils.data.Dataset):
         idx = self.test_indices[raw_idx] # raw_idx goes from 0 to test_num - 1
         J = sim_list[test_sim-1][idx] # index in original, unscreened dataset
 
-        i0, j0, k0 = coords[J, 0], coords[J, 1], coords[J, 2]
-        subbox = compute_subbox(i0, j0, k0, _3d_den[test_sim-1])
+        i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
+        subbox = _3d_den[test_sim - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
+                 j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
         input_data = torch.tensor(subbox).to(device, dtype=torch.float32)
-        print(f"{raw_idx+1} of testing set retrieved")
         return torch.unsqueeze(input_data, 0), self.output_data[raw_idx]
 
 if __name__ == '__main__':
@@ -180,12 +194,13 @@ if __name__ == '__main__':
 
     sim_length = 256
     subbox_length = 75
+    subbox_pad = subbox_length // 2 # expand the density field by this amount on each side to emulate cyclic BC
     num_particles = sim_length ** 3
 
     log_low_mass_limit = 11
     log_high_mass_limit = 13.4
 
-    Batch_size = 2
+    Batch_size = 64
 
     # prepare coords
     iord = range(sim_length ** 3)
@@ -195,7 +210,7 @@ if __name__ == '__main__':
     sims = [1, 2]
     training_list = [1]
     test_sim = 2 # which simulation is used for testing
-    test_num = 8 # number of particles used in testing
+    test_num = 64 # number of particles used in testing
 
     halo_mass = get_halo_mass(sims)
     sim_list, train_num_particles = get_sim_list(sims)
@@ -207,11 +222,12 @@ if __name__ == '__main__':
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=test_num, shuffle=False)
 
     # for batch, (_x, _y) in enumerate(train_dataloader):
-    #     print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}")
-    #     # print(_x)
-    #     print(_y)
+    #     if batch % 10 == 0:
+    #         print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}")
+    #         # print(_x)
+    #         # print(_y)
 
     for batch, (_x, _y) in enumerate(test_dataloader):
         print(f"_x shape = {_x.shape}   _y shape = {_y.shape}")
         # print(_x)
-        print(_y)
+        # print(_y)
