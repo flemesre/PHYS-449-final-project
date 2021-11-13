@@ -155,7 +155,7 @@ class TrainingDataset(torch.utils.data.Dataset):
         subbox = _3d_den[sim_num - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
                  j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
 
-        input_data = torch.tensor(subbox).to(device, dtype=torch.float32)
+        input_data = subbox.to(device, dtype=torch.float32)
         return torch.unsqueeze(input_data, 0), self.output_data[sim_num-1][idx]
 
 class TestingDataset(torch.utils.data.Dataset):
@@ -180,7 +180,7 @@ class TestingDataset(torch.utils.data.Dataset):
         i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
         subbox = _3d_den[test_sim - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
                  j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
-        input_data = torch.tensor(subbox).to(device, dtype=torch.float32)
+        input_data = subbox.to(device, dtype=torch.float32)
         return torch.unsqueeze(input_data, 0), self.output_data[raw_idx]
 
 if __name__ == '__main__':
@@ -221,11 +221,11 @@ if __name__ == '__main__':
     test_dataset = TestingDataset()
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=test_num, shuffle=False)
 
-    # for batch, (_x, _y) in enumerate(train_dataloader):
-    #     if batch % 10 == 0:
-    #         print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}")
-    #         # print(_x)
-    #         # print(_y)
+    for batch, (_x, _y) in enumerate(train_dataloader):
+        if batch % 10 == 0:
+            print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}")
+            # print(_x)
+            # print(_y)
 
     for batch, (_x, _y) in enumerate(test_dataloader):
         print(f"_x shape = {_x.shape}   _y shape = {_y.shape}")
