@@ -1,5 +1,5 @@
 import numpy as np
-import torch, random
+import torch, random, time
 
 def get_halo_mass(sims):
     HALO_mass=[]
@@ -221,9 +221,12 @@ if __name__ == '__main__':
     test_dataset = TestingDataset()
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=test_num, shuffle=False)
 
+    start = time.time()
     for batch, (_x, _y) in enumerate(train_dataloader):
         if batch % 10 == 0:
-            print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}")
+            end = time.time()
+            print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}   time = {end-start}")
+            start = time.time()
             # print(_x)
             # print(_y)
 
