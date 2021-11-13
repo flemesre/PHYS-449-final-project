@@ -8,12 +8,11 @@ While the code can probably support more simulations, I have only tested it on t
 ## 2
 run `load_data_from_pynbod2y.py` to convert pynbody files into things numpy/pytorch can recognize
 - note that you will need to change `path` depending on your local machine
+- it takes a few minutes to create the 3d_den_pad files
 
 ## 3
 run `dataloader_2.py` to do the data processing and dataloading
 - all the data processing steps outlined in https://github.com/flemesre/PHYS-449-final-project/blob/main/Documentations/data.md#data-processing has been implemented
-- batch size currently set to 2 for debugging/demo purposes (otherwise it runs very slowly)
-- similarly test size is currently set to 8
 
 ## Next steps
 - More testing, especially on the other simulations
