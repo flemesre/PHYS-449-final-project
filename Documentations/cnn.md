@@ -16,3 +16,8 @@ fed to a series of 3 fully-connected layers"
 "All convolutional layers (but the first one) are followed by
 max-pooling layers; their output is then used as input to the
 non-linear leaky rectified linear unit (LeakyReLU) [51] activation function"
+
+## 3
+can't do both data processing and dataloading on my gpu?
+
+`RuntimeError: CUDA out of memory. Tried to allocate 3.22 GiB (GPU 0; 8.00 GiB total capacity; 3.94 GiB already allocated; 2.09 GiB free;  3.95 GiB reserved in total by PyTorch)`
