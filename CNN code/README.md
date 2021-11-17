@@ -12,14 +12,16 @@ run `load_data_from_pynbod2y.py` to convert pynbody files into things numpy/pyto
 
 ## 3
 run `dataloader_with_NN.py` to do the data processing, dataloading, and to train the CNN
-- the first iteration takes around 30 seconds, each subsequent iteration takes around 1 min
+- runs on `'cuda'` by default
+- on `'cpu'`: the first iteration takes around 30 seconds, each subsequent iteration takes around 1 min
+- on `'cuda'`: each iteration takes around 0.015 to 0.03 seconds
 
 ## Notes
+- To run on cuda, the batch size is reduced to 10
 - How are the biases initialized?
 - Cauchy loss not implemented yet
 - More testing, especially on the other simulations
-- For data processing, setting both `device` and `device0` to `'cuda'` is recommended (~500 batches per second, batch size = 64)
-- HOWEVER, to run the CNN, set both `device` and `device0` to `'cpu'` (otherwise it runs out of memory)
+- Setting both `device` and `device0` to `'cuda'` is recommended (~500 batches per second, batch size = 64)
 
 ## Done
 - all the data processing steps outlined in https://github.com/flemesre/PHYS-449-final-project/blob/main/Documentations/data.md#data-processing has been implemented
