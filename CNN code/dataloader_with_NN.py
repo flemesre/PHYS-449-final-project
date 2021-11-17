@@ -273,7 +273,7 @@ if __name__ == '__main__':
     path = ''
 
     # device for loading and processing the tensor data
-    device0 = torch.device("cpu")
+    device0 = torch.device("cuda")
     # device for doing the training
     device = torch.device("cuda")
 
