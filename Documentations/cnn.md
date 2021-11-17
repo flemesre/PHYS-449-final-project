@@ -46,4 +46,4 @@ RuntimeError: CUDA out of memory. Tried to allocate 3.22 GiB (GPU 0; 8.00 GiB to
 ## 2
 it looks like `fc input shape = torch.Size([64, 128, 2, 2, 2])`?
 
-so the input for the 1st FC layer = 128*2*2*2 = 1024?
+so the input for the 1st FC layer = 128 *2 *2 *2 = 1024?
