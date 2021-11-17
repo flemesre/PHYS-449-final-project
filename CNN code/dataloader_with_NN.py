@@ -251,6 +251,14 @@ class CNN(nn.Module):
             nn.Linear(self.fc_layer2_neurons, self.fc_layer3_neurons),
         )
 
+        # Xavier initialization
+        def initialize_weights(N_net):
+            if isinstance(N_net, nn.Conv3d) or isinstance(N_net, nn.Linear):
+                nn.init.xavier_uniform_(N_net.weight)
+
+        self.conv_layers.apply(initialize_weights)
+        self.fc_layers.apply(initialize_weights)
+
 
     def forward(self, initial_den_field):
         conv_output = self.conv_layers(initial_den_field)
@@ -309,9 +317,9 @@ if __name__ == '__main__':
     start = time.time()
     for batch, (_den_field, _true_mass) in enumerate(train_dataloader):
         predicted_mass = model(_den_field)
-        print(predicted_mass.shape)
-        print(_true_mass.shape)
-        print(torch.unsqueeze(_true_mass, 1).shape)
+        # print(predicted_mass.shape)
+        # print(_true_mass.shape)
+        # print(torch.unsqueeze(_true_mass, 1).shape)
         loss = loss_fcn(predicted_mass, torch.unsqueeze(_true_mass, 1))
 
         optimizer.zero_grad()
@@ -320,13 +328,16 @@ if __name__ == '__main__':
 
         if batch % 1 == 0:
             end = time.time()
+            train_time = end - start
+            start = time.time()
             # print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}   time = {end-start}")
             for test_batch, (_x, _y) in enumerate(test_dataloader):
-                print(_x.shape)
-                print(_y.shape)
-                print(torch.unsqueeze(_y, 1).shape)
+                # print(_x.shape)
+                # print(_y.shape)
+                # print(torch.unsqueeze(_y, 1).shape)
                 test_loss = loss_fcn(model(_x), torch.unsqueeze(_y, 1))
-            print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  time = {end - start}")
+            end = time.time()
+            print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
 
             start = time.time()
             # print(_x)
