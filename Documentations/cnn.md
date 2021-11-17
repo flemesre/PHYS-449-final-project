@@ -29,7 +29,7 @@ the convolutional layers."
 
 But what about the biases?
 
-# Issues
+# Code
 
 ## 1
 can't do both data processing and dataloading on my gpu?
