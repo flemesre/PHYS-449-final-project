@@ -32,6 +32,12 @@ But what about the biases?
 # Code
 
 ## 1
+it looks like `fc input shape = torch.Size([64, 128, 2, 2, 2])`?
+
+so the input for the 1st FC layer = 128 *2 *2 *2 = 1024?
+
+# Resolved
+## 1
 can't do both data processing and dataloading on my gpu?
 
 ```
@@ -42,8 +48,4 @@ in fact just the density field + neural net is too much?
 ```
 RuntimeError: CUDA out of memory. Tried to allocate 3.22 GiB (GPU 0; 8.00 GiB total capacity; 3.41 GiB already allocated; 2.61 GiB free; 3.43 GiB reserved in total by PyTorch)
 ```
-
-## 2
-it looks like `fc input shape = torch.Size([64, 128, 2, 2, 2])`?
-
-so the input for the 1st FC layer = 128 *2 *2 *2 = 1024?
+Solution: set smaller batch size (8 or 10) and number of test particles (8)
