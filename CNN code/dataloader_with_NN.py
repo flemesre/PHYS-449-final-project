@@ -88,7 +88,7 @@ def data_processing(index):
 
         try:
             print("Attempting to load norm_halo_mass"+str(sim_index)+".npt")
-            norm_halo_mass0 = torch.load(path + 'norm_halo_mass'+str(sim_index)+'.npt').to(device)
+            norm_halo_mass0 = torch.load(path + 'norm_halo_mass'+str(sim_index)+'.npt').to(device0)
             print("Loaded the normalized halo masses "+str(sim_index))
 
         except OSError:  # FileNotFoundError
@@ -139,7 +139,7 @@ class TrainingDataset(torch.utils.data.Dataset):
     def __init__(self):
         self.output_data = []
         for idx in training_list:
-            self.output_data.append(norm_halo_mass[idx-1].to(device, dtype=torch.float32))
+            self.output_data.append(norm_halo_mass[idx-1].to(device0, dtype=torch.float32))
 
     def __len__(self):
         training_num = 0
@@ -157,7 +157,7 @@ class TrainingDataset(torch.utils.data.Dataset):
         subbox = _3d_den[sim_num - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
                  j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
 
-        input_data = subbox.to(device, dtype=torch.float32)
+        input_data = subbox.to(device0, dtype=torch.float32)
         return torch.unsqueeze(input_data, 0), self.output_data[sim_num-1][idx]
 
 class TestingDataset(torch.utils.data.Dataset):
@@ -168,7 +168,7 @@ class TestingDataset(torch.utils.data.Dataset):
         for idx in self.test_indices:
             self.OUTPUT_data.append(norm_halo_mass[test_sim-1][idx])
 
-        self.output_data = torch.tensor(self.OUTPUT_data).to(device, dtype=torch.float32)
+        self.output_data = torch.tensor(self.OUTPUT_data).to(device0, dtype=torch.float32)
 
     def __len__(self):
         return test_num
@@ -182,7 +182,7 @@ class TestingDataset(torch.utils.data.Dataset):
         i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
         subbox = _3d_den[test_sim - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
                  j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
-        input_data = subbox.to(device, dtype=torch.float32)
+        input_data = subbox.to(device0, dtype=torch.float32)
         return torch.unsqueeze(input_data, 0), self.output_data[raw_idx]
 
 class CNN(nn.Module):
@@ -275,7 +275,7 @@ if __name__ == '__main__':
     # device for loading and processing the tensor data
     device0 = torch.device("cpu")
     # device for doing the training
-    device = torch.device("cpu")
+    device = torch.device("cuda")
 
     sim_length = 256
     subbox_length = 75
@@ -285,7 +285,8 @@ if __name__ == '__main__':
     log_low_mass_limit = 11
     log_high_mass_limit = 13.4
 
-    Batch_size = 64
+    Batch_size = 10
+    test_num = 8  # number of particles used in testing
 
     learning_rate = 0.00005
 
@@ -297,7 +298,6 @@ if __name__ == '__main__':
     sims = [1, 2]
     training_list = [1]
     test_sim = 2 # which simulation is used for testing
-    test_num = 64 # number of particles used in testing
 
     halo_mass = get_halo_mass(sims)
     sim_list, train_num_particles = get_sim_list(sims)
@@ -316,11 +316,12 @@ if __name__ == '__main__':
 
     start = time.time()
     for batch, (_den_field, _true_mass) in enumerate(train_dataloader):
-        predicted_mass = model(_den_field)
+        torch.cuda.empty_cache()
+        predicted_mass = model(_den_field.to(device))
         # print(predicted_mass.shape)
         # print(_true_mass.shape)
         # print(torch.unsqueeze(_true_mass, 1).shape)
-        loss = loss_fcn(predicted_mass, torch.unsqueeze(_true_mass, 1))
+        loss = loss_fcn(predicted_mass, torch.unsqueeze(_true_mass, 1).to(device))
 
         optimizer.zero_grad()
         loss.backward()
@@ -335,7 +336,7 @@ if __name__ == '__main__':
                 # print(_x.shape)
                 # print(_y.shape)
                 # print(torch.unsqueeze(_y, 1).shape)
-                test_loss = loss_fcn(model(_x), torch.unsqueeze(_y, 1))
+                test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
             end = time.time()
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
 
