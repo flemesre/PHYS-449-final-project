@@ -78,6 +78,20 @@ iteration = 370   loss = 0.14734043180942535  test_loss = 0.19513195753097534  t
 iteration = 380   loss = 0.1843460649251938  test_loss = 0.2153889536857605  train time = 3.5781099796295166  test time = 0.0
 ```
 
+# Details
+## 1
+Output of the final conv layer/input to the first fully connected layer
+
+Instead of calculating this from first principles, by printing out the shape of the output tensor
+
+It looks like `fc input shape = torch.Size([64, 128, 2, 2, 2])`?
+
+so the input for the 1st FC layer = 128 *2 *2 *2 = 1024
+
+# Trivia
+## 1
+`torch.cuda.empty_cache()` seems to clear the memory a little? (judging from task manager)
+
 # Resolved
 ## 1
 can't do both data processing and dataloading on my gpu?
