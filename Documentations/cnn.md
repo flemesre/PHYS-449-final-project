@@ -29,6 +29,9 @@ the convolutional layers."
 
 But what about the biases?
 
+## 4
+For gamma in the Cauchy loss function, what should its initial value be? (Currently set as `1`.)
+
 # Code
 
 ## 1
