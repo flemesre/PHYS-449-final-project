@@ -2,6 +2,7 @@ import numpy as np
 import torch, random, time
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 
 def get_halo_mass(sims):
     HALO_mass=[]
@@ -295,10 +296,12 @@ if __name__ == '__main__':
     log_low_mass_limit = 11
     log_high_mass_limit = 13.4
 
-    Batch_size = 10 # 64 in the paper
+    Batch_size = 8 # 64 in the paper
     test_num = 8  # number of particles used in testing
 
-    learning_rate = 0.00005 # author's number
+    learning_rate = 5e-5 # author's number 0.00005
+    num_iterations = 1001
+    save_model = False
 
     # prepare coords
     iord = range(sim_length ** 3)
@@ -323,6 +326,9 @@ if __name__ == '__main__':
     model = CNN().to(device)
     # loss_fcn = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+    train_loss_history = []
+    test_loss_history = []
 
     start = time.time()
     for batch, (_den_field, _true_mass) in enumerate(train_dataloader):
@@ -349,9 +355,26 @@ if __name__ == '__main__':
                 # print(torch.unsqueeze(_y, 1).shape)
                 # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
                 test_loss = custom_loss_fcn(model,torch.unsqueeze(_y, 1).to(device),model(_x.to(device)))
+
+            train_loss_history.append(loss.detach().cpu())
+            test_loss_history.append(test_loss.detach().cpu())
             end = time.time()
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
 
             start = time.time()
             # print(_x)
             # print(_y)
+
+        if batch == num_iterations-1:
+            end = time.time()
+            print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
+            break
+
+    plt.plot(train_loss_history,label='training loss')
+    plt.plot(test_loss_history,label='testing loss')
+    plt.title('CNN training performance')
+    plt.legend(loc='best')
+    plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
+    plt.show()
+    if save_model:
+        torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
