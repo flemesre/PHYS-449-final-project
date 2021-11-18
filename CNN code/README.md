@@ -18,8 +18,8 @@ run `dataloader_with_NN.py` to do the data processing, dataloading, and to train
 
 ## Notes
 - To run on cuda, the batch size is reduced to 10
-- How are the biases initialized?
-- Cauchy loss not implemented yet
+- How are the biases initialized? How is gamma initialized?
+- Cauchy loss partly implemented (missing the Heaviside/restrict to [-1,1] part)
 - More testing, especially on the other simulations
 - Setting both `device` and `device0` to `'cuda'` is recommended (~500 batches per second, batch size = 64)
 
