@@ -199,7 +199,9 @@ class CNN(nn.Module):
         self.fc_layer2_neurons = 128
         self.fc_layer3_neurons = 1
 
-        self.beta = 0.03
+        self.beta = 0.03 # Leaky ReLU coeff
+
+        self.gamma = torch.tensor(1.0) # gamma in Cauchy loss
 
         self.conv_layers = nn.Sequential(
             # 1st conv layer
@@ -267,6 +269,14 @@ class CNN(nn.Module):
         # print(f"fc input shape = {fc_input.shape}")
         return self.fc_layers(fc_input)
 
+def custom_loss_fcn(MODEL,TENSOR1,TENSOR2):
+    thing_inside_ln = 1+((TENSOR1-TENSOR2)/MODEL.gamma)**2
+    before_avging = torch.log(MODEL.gamma)+torch.log(thing_inside_ln)
+    # print(f"gamma = {MODEL.gamma}")
+    # print(f"before ln = {thing_inside_ln}")
+    # print(f"before avg = {before_avging}")
+    # print(f"loss = {torch.mean(before_avging)}")
+    return torch.mean(before_avging)
 
 if __name__ == '__main__':
     # change the path to where you store the files on the local machine
@@ -285,10 +295,10 @@ if __name__ == '__main__':
     log_low_mass_limit = 11
     log_high_mass_limit = 13.4
 
-    Batch_size = 10
+    Batch_size = 10 # 64 in the paper
     test_num = 8  # number of particles used in testing
 
-    learning_rate = 0.00005
+    learning_rate = 0.00005 # author's number
 
     # prepare coords
     iord = range(sim_length ** 3)
@@ -311,7 +321,7 @@ if __name__ == '__main__':
 
     # initial NN and optimizer
     model = CNN().to(device)
-    loss_fcn = nn.MSELoss()
+    # loss_fcn = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     start = time.time()
@@ -321,13 +331,14 @@ if __name__ == '__main__':
         # print(predicted_mass.shape)
         # print(_true_mass.shape)
         # print(torch.unsqueeze(_true_mass, 1).shape)
-        loss = loss_fcn(predicted_mass, torch.unsqueeze(_true_mass, 1).to(device))
+        # loss = loss_fcn(predicted_mass, torch.unsqueeze(_true_mass, 1).to(device))
+        loss = custom_loss_fcn(model,torch.unsqueeze(_true_mass, 1).to(device),predicted_mass)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        if batch % 1 == 0:
+        if batch % 10 == 0:
             end = time.time()
             train_time = end - start
             start = time.time()
@@ -336,7 +347,8 @@ if __name__ == '__main__':
                 # print(_x.shape)
                 # print(_y.shape)
                 # print(torch.unsqueeze(_y, 1).shape)
-                test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
+                # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
+                test_loss = custom_loss_fcn(model,torch.unsqueeze(_y, 1).to(device),model(_x.to(device)))
             end = time.time()
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
 
