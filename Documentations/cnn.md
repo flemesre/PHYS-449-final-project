@@ -8,6 +8,8 @@ the feature maps."
 
 so average or max?
 
+Finn: I think that's an error. Since they said everywhere else that they used max pooling, it must be max pooling.
+
 ## 2
 Does the last conv layer has leaky relu?
 
@@ -19,6 +21,8 @@ fed to a series of 3 fully-connected layers"
 max-pooling layers; their output is then used as input to the
 non-linear leaky rectified linear unit (LeakyReLU) [51] activation function"
 
+Finn: Maybe we can try with and without LeakyReLU on the last layer?
+
 ## 3
 "The initial weights of the kernels in a layer were set
 following the Xavier initialization technique"
@@ -28,6 +32,8 @@ Xavier initialization technique used for the kernel weights of
 the convolutional layers."
 
 But what about the biases?
+
+Finn: Pretty sure it is standard to initialize biases as 0, so if nothing is said about it in the paper, that is likely what was done.
 
 # Code
 
