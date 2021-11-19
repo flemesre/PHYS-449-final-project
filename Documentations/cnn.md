@@ -38,6 +38,11 @@ Finn: Pretty sure it is standard to initialize biases as 0, so if nothing is sai
 ## 4
 For gamma in the Cauchy loss function, what should its initial value be? (Currently set as `1`.)
 
+## 5
+Figure 7: : The loss function evaluated for the training set and the validation set at each batch iteration
+
+So it sounds like each iteration = one batch
+
 # Code
 
 ## 1
