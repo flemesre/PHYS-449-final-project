@@ -1,5 +1,5 @@
 import numpy as np
-import torch, random, time
+import torch, random, time, sys
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -202,7 +202,7 @@ class CNN(nn.Module):
 
         self.beta = 0.03 # Leaky ReLU coeff
 
-        self.gamma = torch.tensor(1.0) # gamma in Cauchy loss
+        self.gamma = nn.Parameter(torch.tensor(1.0)) # gamma in Cauchy loss
 
         self.conv_layers = nn.Sequential(
             # 1st conv layer
@@ -300,8 +300,11 @@ if __name__ == '__main__':
     test_num = 8  # number of particles used in testing
 
     learning_rate = 5e-5 # author's number 0.00005
-    num_iterations = 5001
+    num_iterations = 25001 # 25001
     save_model = True
+
+    load_model = False
+    plot_with_plotly = True
 
     # prepare coords
     iord = range(sim_length ** 3)
@@ -322,6 +325,13 @@ if __name__ == '__main__':
     test_dataset = TestingDataset()
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=test_num, shuffle=False)
 
+    if load_model:
+        model = CNN()
+        model.load_state_dict(torch.load('CNN_itr5001time1637333485.pt'))
+        model.eval()
+        print(model.gamma)
+        sys.exit()
+
     # initial NN and optimizer
     model = CNN().to(device)
     # loss_fcn = nn.MSELoss()
@@ -329,6 +339,7 @@ if __name__ == '__main__':
 
     train_loss_history = []
     test_loss_history = []
+    gamma_history = []
     graph_x_axis = np.append(np.arange(0,num_iterations-1,10),num_iterations-1)
         # np.linspace(0,num_iterations-1,(num_iterations-1)//10+1)
 
@@ -360,6 +371,7 @@ if __name__ == '__main__':
 
             train_loss_history.append(loss.detach().cpu())
             test_loss_history.append(test_loss.detach().cpu())
+            gamma_history.append(model.gamma.detach().cpu())
             end = time.time()
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
 
@@ -372,11 +384,34 @@ if __name__ == '__main__':
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
             break
 
-    plt.plot(graph_x_axis,train_loss_history,label='training loss')
-    plt.plot(graph_x_axis,test_loss_history,label='testing loss')
-    plt.title('CNN training performance')
-    plt.legend(loc='best')
-    plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
-    plt.show()
     if save_model:
         torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
+
+    plt.figure()
+    plt.plot(graph_x_axis, train_loss_history, label='training loss')
+    plt.plot(graph_x_axis, test_loss_history, label='testing loss')
+    plt.title('CNN training performance, ' + str(num_iterations) + " iterations, "+str(int(time.time())))
+    plt.legend(loc='best')
+    plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
+
+    plt.figure()
+    plt.plot(graph_x_axis,gamma_history)
+    plt.title('CNN gamma history, ' + str(num_iterations) + ' iterations, '+ str(int(time.time())))
+    plt.savefig("CNN_gamma_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
+
+    if plot_with_plotly:
+        import plotly.express as px
+        import plotly.io as pi
+
+        data_frame = {'iterations':graph_x_axis, 'training loss': train_loss_history, 'testing loss': test_loss_history}
+        fig = px.line(data_frame, x='iterations',y=["training loss", "testing loss"],
+                      title='CNN training performance, '+ str(num_iterations)+'iterations, '+str(int(time.time())),
+                      labels={'value':'loss'})
+        fig.write_html("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
+
+        data_frame2 = {'iterations':graph_x_axis, 'gamma':gamma_history}
+        fig2 = px.line(data_frame2,x='iterations',y='gamma',
+                       title='CNN gamma history, ' + str(num_iterations) + ' iterations, '+str(int(time.time())))
+        fig2.write_html("CNN_gamma_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
+
+    plt.show()
