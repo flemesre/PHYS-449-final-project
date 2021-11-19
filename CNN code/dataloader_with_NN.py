@@ -300,8 +300,8 @@ if __name__ == '__main__':
     test_num = 8  # number of particles used in testing
 
     learning_rate = 5e-5 # author's number 0.00005
-    num_iterations = 1001
-    save_model = False
+    num_iterations = 5001
+    save_model = True
 
     # prepare coords
     iord = range(sim_length ** 3)
@@ -329,6 +329,8 @@ if __name__ == '__main__':
 
     train_loss_history = []
     test_loss_history = []
+    graph_x_axis = np.append(np.arange(0,num_iterations-1,10),num_iterations-1)
+        # np.linspace(0,num_iterations-1,(num_iterations-1)//10+1)
 
     start = time.time()
     for batch, (_den_field, _true_mass) in enumerate(train_dataloader):
@@ -370,8 +372,8 @@ if __name__ == '__main__':
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
             break
 
-    plt.plot(train_loss_history,label='training loss')
-    plt.plot(test_loss_history,label='testing loss')
+    plt.plot(graph_x_axis,train_loss_history,label='training loss')
+    plt.plot(graph_x_axis,test_loss_history,label='testing loss')
     plt.title('CNN training performance')
     plt.legend(loc='best')
     plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
