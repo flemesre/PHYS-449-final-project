@@ -1,5 +1,5 @@
 import numpy as np
-import torch, random, time
+import torch, random, time, sys
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -202,7 +202,7 @@ class CNN(nn.Module):
 
         self.beta = 0.03 # Leaky ReLU coeff
 
-        self.gamma = torch.tensor(1.0) # gamma in Cauchy loss
+        self.gamma = nn.Parameter(torch.tensor(1.0)) # gamma in Cauchy loss
 
         self.conv_layers = nn.Sequential(
             # 1st conv layer
@@ -300,8 +300,11 @@ if __name__ == '__main__':
     test_num = 8  # number of particles used in testing
 
     learning_rate = 5e-5 # author's number 0.00005
-    num_iterations = 5001
+    num_iterations = 1001
     save_model = True
+
+    load_model = False
+
 
     # prepare coords
     iord = range(sim_length ** 3)
@@ -321,6 +324,13 @@ if __name__ == '__main__':
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=Batch_size, shuffle=True)
     test_dataset = TestingDataset()
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=test_num, shuffle=False)
+
+    if load_model:
+        model = CNN()
+        model.load_state_dict(torch.load('CNN_itr25001time1637291580.pt'))
+        model.eval()
+        print(model.gamma)
+        sys.exit()
 
     # initial NN and optimizer
     model = CNN().to(device)
@@ -377,6 +387,6 @@ if __name__ == '__main__':
     plt.title('CNN training performance')
     plt.legend(loc='best')
     plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
-    plt.show()
     if save_model:
         torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
+    plt.show()
