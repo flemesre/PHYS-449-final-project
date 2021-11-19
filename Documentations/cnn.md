@@ -33,12 +33,13 @@ the convolutional layers."
 
 But what about the biases?
 
-<<<<<<< HEAD
 Finn: Pretty sure it is standard to initialize biases as 0, so if nothing is said about it in the paper, that is likely what was done.
+
 =======
 ## 4
 For gamma in the Cauchy loss function, what should its initial value be? (Currently set as `1`.)
->>>>>>> 949b1866c3e836c4e42a762bfa3828ea3933be80
+
+ 949b1866c3e836c4e42a762bfa3828ea3933be80
 
 # Code
 
