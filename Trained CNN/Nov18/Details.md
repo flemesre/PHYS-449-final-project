@@ -1,4 +1,4 @@
-
+Note: gamma was not optimized
 ```
 Batch_size = 8 
 test_num = 8  # number of particles used in testing
