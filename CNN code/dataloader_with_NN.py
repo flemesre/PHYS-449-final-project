@@ -29,8 +29,8 @@ def get_sim_list(sims):
             print('sim_' + str(sim_index) + '_list.npy not found, creating sim_' + str(sim_index) + '_list.npy')
             sim_1_list0 = []
             for I in range(num_particles):
-                if halo_mass[sim_index-1][I] > 1:
-                    log_mass = np.log10(halo_mass[sim_index-1][I])
+                if halo_mass[sims.index(sim_index)][I] > 1:
+                    log_mass = np.log10(halo_mass[sims.index(sim_index)][I])
                     if log_mass <= log_high_mass_limit and log_mass >= log_low_mass_limit:
                         sim_1_list0.append(I)
                 if I % 1e6 == 0:
@@ -97,9 +97,9 @@ def data_processing(index):
                   +str(sim_index)+'.npt')
             # creating restricted_halo_mass, which uses the log mass
             # removing the particles in halo_mass that are outside of the mass range
-            restricted_halo_mass = torch.tensor(np.zeros(train_num_particles[sim_index-1])).to(device0)
-            for I in range(train_num_particles[sim_index-1]):
-                restricted_halo_mass[I] = np.log10(halo_mass[sim_index-1][sim_list[sim_index-1][I]])
+            restricted_halo_mass = torch.tensor(np.zeros(train_num_particles[sims.index(sim_index)])).to(device0)
+            for I in range(train_num_particles[sims.index(sim_index)]):
+                restricted_halo_mass[I] = np.log10(halo_mass[sims.index(sim_index)][sim_list[sims.index(sim_index)][I]])
                 if I % 5e5 == 0:
                     print(f"{I} particles processed")
 
@@ -152,7 +152,7 @@ class TrainingDataset(torch.utils.data.Dataset):
         # idx is the index in the reduced dataset, after the particles have been screened
         # J is the index in the original dataset
         sim_num, idx = which_sim(raw_idx)
-        J = sim_list[sim_num-1][idx]
+        J = sim_list[sims.index(sim_num)][idx]
 
         i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
         subbox = _3d_den[sim_num - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
@@ -165,9 +165,9 @@ class TestingDataset(torch.utils.data.Dataset):
 
     def __init__(self):
         self.OUTPUT_data = []
-        self.test_indices = random.sample(range(train_num_particles[test_sim-1]),test_num)
+        self.test_indices = random.sample(range(train_num_particles[sims.index(test_sim)]),test_num)
         for idx in self.test_indices:
-            self.OUTPUT_data.append(norm_halo_mass[test_sim-1][idx])
+            self.OUTPUT_data.append(norm_halo_mass[sims.index(test_sim)][idx])
 
         self.output_data = torch.tensor(self.OUTPUT_data).to(device0, dtype=torch.float32)
 
@@ -178,7 +178,7 @@ class TestingDataset(torch.utils.data.Dataset):
         # idx is the index in the reduced dataset, after the particles have been screened
         # J is the index in the original dataset
         idx = self.test_indices[raw_idx] # raw_idx goes from 0 to test_num - 1
-        J = sim_list[test_sim-1][idx] # index in original, unscreened dataset
+        J = sim_list[sims.index(test_sim)][idx] # index in original, unscreened dataset
 
         i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
         subbox = _3d_den[test_sim - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
