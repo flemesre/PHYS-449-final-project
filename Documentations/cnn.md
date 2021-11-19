@@ -52,6 +52,13 @@ It looks like `fc input shape = torch.Size([64, 128, 2, 2, 2])`?
 
 so the input for the 1st FC layer = 128 *2 *2 *2 = 1024
 
+## 2
+To match the shape of the output tensor with that of the input tensor
+
+Need to go from (batch size,) to (batch size, 1)
+
+Hence `torch.unsqueeze(_true_mass, 1)`
+
 # Trivia
 ## 1
 `torch.cuda.empty_cache()` seems to clear the memory a little? (judging from task manager)
