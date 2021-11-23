@@ -349,27 +349,28 @@ class CNN_skip(nn.Module):
 
 
     def forward(self, initial_den_field):
+        m = nn.LeakyReLU(negative_slope = self.relu_beta)
+        c1 = m(self.conv1(x.float())) #(864,864,864,32)
 
-        c1 = nn.LeakyReLU(self.conv1(x.float())) #(864,864,864,32)
-
-        c2 = nn.LeakyReLU(self.conv2(c1),negative_slope= self.relu_beta) # (864,864,864,32)
+        c2 = m(self.conv2(c1)) # (864,864,864,32)
         p1 = self.pool1(c2+c1) # (862,862,862,32)      
 
-        c3 = nn.LeakyReLU(self.conv3(p1),negative_slope= self.relu_beta) # (862,862,862,64)
+        c3 = m(self.conv3(p1)) # (862,862,862,64)
         p2 = self.pool2(c3) # (860,860,860,64)
 
-        c4 = nn.LeakyReLU(self.conv4(p2),negative_slope= self.relu_beta) # (860,860,860, 64)
+        c4 = m(self.conv4(p2)) # (860,860,860, 64)
         p3 = self.pool(c4+p2) # (858,858,858,64)
 
-        c5 = nn.LeakyReLU(self.conv5(p3),negative_slope= self.relu_beta) # (858,858,858,128)
+        c5 = m(self.conv5(p3)) # (858,858,858,128)
         p4 = self.pool(c5) # (856,856,856,128)
 
-        c6 = nn.LeakyReLU(self.conv6(p4),negative_slope= self.relu_beta) # (856,856,856,128)
+        c6 = m(self.conv6(p4)) # (856,856,856,128)
         p5 = self.pool(c6+p4) # (854,854,854,128)
         # Skip connections: c1+c2 --> p1
         #                   p2+c4 --> p3
         #                   p4+c6 --> p5
         conv_output = p5 # CANNOT USE SEQUENTIAL FOR SKIP, SORRY!
+
         #conv_output = self.conv_layers(initial_den_field)
         # print(f"conv output shape = {conv_output.shape}")
         fc_input = torch.flatten(conv_output, start_dim=1)
