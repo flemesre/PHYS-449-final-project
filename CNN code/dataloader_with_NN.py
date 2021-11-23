@@ -270,6 +270,112 @@ class CNN(nn.Module):
         # print(f"fc input shape = {fc_input.shape}")
         return self.fc_layers(fc_input)
 
+
+class CNN_skip(nn.Module):
+    def __init__(self):
+        super(CNN_skip, self).__init__()
+        self.conv_layer1_kernels = 32
+        self.conv_layer2_kernels = 32
+        self.conv_layer3_kernels = 64
+        self.conv_layer4_kernels = 128
+        self.conv_layer5_kernels = 128
+        self.conv_layer6_kernels = 128
+
+        self.fc_layer1_neurons = 256
+        self.fc_layer2_neurons = 128
+        self.fc_layer3_neurons = 1
+
+        self.beta = 0.03 # Leaky ReLU coeff
+
+        self.gamma = torch.tensor(1.0) # gamma in Cauchy loss
+
+        #self.conv_layers = nn.Sequential( 864+2-3/1 +1 = 863+1
+            # 1st conv layer --- (864,864,864,1) ---> (864,864,864,32)
+        self.conv1=nn.Conv3d(1,self.conv_layer1_kernels,(3,3,3),
+                      stride=1,padding=(1, 1, 1), padding_mode='zeros')
+            #nn.LeakyReLU(negative_slope=self.beta),
+
+            # 2nd conv layer --- (864,864,864,32) ---> (864,864,864,32)
+        self.conv2=nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+        self.pool1=nn.MaxPool3d((2, 2, 2)), # (864,864,864,32) ---> (862,862,862,32)
+            #nn.LeakyReLU(negative_slope=self.beta),
+
+            # 3rd conv layer --- (862,862,862,32) ---> (862,862,862,64)
+        self.conv3=nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+        self.pool2=nn.MaxPool3d((2, 2, 2)),
+            #nn.LeakyReLU(negative_slope=self.beta), (862,862,862,64) ---> (860,860,860,64)
+
+            # 4th conv layer --- (860,860,860,64) ---> (860,860,860,64)
+        self.conv4=nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+        self.pool3=nn.MaxPool3d((2, 2, 2)), #(860,860,860,64) ---> (858,858,858,64)
+            #nn.LeakyReLU(negative_slope=self.beta),
+
+            # 5th conv layer --- (858,858,858,64) ---> (858,858,858,128)
+        self.conv5=nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+        self.pool4=nn.MaxPool3d((2, 2, 2)), # (858,858,858,128)---> (856,856,856,128)
+            #nn.LeakyReLU(negative_slope=self.beta),
+
+            # 6th conv layer --- (856,856,856,128) ---> (856,856,856,128)
+        self.conv6=nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+        self.pool5=nn.MaxPool3d((2, 2, 2)), # (856,856,856,128) ---> (854,854,854,128)
+            #nn.LeakyReLU(negative_slope=self.beta),
+        
+
+        self.fc_layers = nn.Sequential(
+            # 1st fc layer
+            nn.Linear(1024, self.fc_layer1_neurons),
+            nn.LeakyReLU(negative_slope=self.beta),
+
+            # 2nd fc layer
+            nn.Linear(self.fc_layer1_neurons, self.fc_layer2_neurons),
+            nn.LeakyReLU(negative_slope=self.beta),
+
+            # 3rd fc layer
+            nn.Linear(self.fc_layer2_neurons, self.fc_layer3_neurons),
+        )
+
+        # Xavier initialization
+        def initialize_weights(N_net):
+            if isinstance(N_net, nn.Conv3d) or isinstance(N_net, nn.Linear):
+                nn.init.xavier_uniform_(N_net.weight)
+
+        self.conv_layers.apply(initialize_weights)
+        self.fc_layers.apply(initialize_weights)
+
+
+    def forward(self, initial_den_field):
+
+        c1 = nn.LeakyReLU(self.conv1(x.float())) #(864,864,864,32)
+
+        c2 = nn.LeakyReLU(self.conv2(c1),negative_slope= self.relu_beta) # (864,864,864,32)
+        p1 = self.pool1(c2+c1) # (862,862,862,32)      
+
+        c3 = nn.LeakyReLU(self.conv3(p1),negative_slope= self.relu_beta) # (862,862,862,64)
+        p2 = self.pool2(c3) # (860,860,860,64)
+
+        c4 = nn.LeakyReLU(self.conv4(p2),negative_slope= self.relu_beta) # (860,860,860, 64)
+        p3 = self.pool(c4+p2) # (858,858,858,64)
+
+        c5 = nn.LeakyReLU(self.conv5(p3),negative_slope= self.relu_beta) # (858,858,858,128)
+        p4 = self.pool(c5) # (856,856,856,128)
+
+        c6 = nn.LeakyReLU(self.conv6(p4),negative_slope= self.relu_beta) # (856,856,856,128)
+        p5 = self.pool(c6+p4) # (854,854,854,128)
+        # Skip connections: c1+c2 --> p1
+        #                   p2+c4 --> p3
+        #                   p4+c6 --> p5
+        conv_output = p5 # CANNOT USE SEQUENTIAL FOR SKIP, SORRY!
+        #conv_output = self.conv_layers(initial_den_field)
+        # print(f"conv output shape = {conv_output.shape}")
+        fc_input = torch.flatten(conv_output, start_dim=1)
+        # print(f"fc input shape = {fc_input.shape}")
+        return self.fc_layers(fc_input)
+
 def custom_loss_fcn(MODEL,TENSOR1,TENSOR2):
     thing_inside_ln = 1+((TENSOR1-TENSOR2)/MODEL.gamma)**2
     before_avging = torch.log(MODEL.gamma)+torch.log(thing_inside_ln)
@@ -323,7 +429,7 @@ if __name__ == '__main__':
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=test_num, shuffle=False)
 
     # initial NN and optimizer
-    model = CNN().to(device)
+    model = CNN_skip().to(device)
     # loss_fcn = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -380,3 +486,5 @@ if __name__ == '__main__':
     plt.show()
     if save_model:
         torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
+
+
