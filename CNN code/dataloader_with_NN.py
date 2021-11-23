@@ -3,6 +3,7 @@ import torch, random, time
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import argparse
 
 def get_halo_mass(sims):
     HALO_mass=[]
@@ -344,21 +345,21 @@ class CNN_skip(nn.Module):
             if isinstance(N_net, nn.Conv3d) or isinstance(N_net, nn.Linear):
                 nn.init.xavier_uniform_(N_net.weight)
 
-        torch.nn.init.xavier_uniform(self.conv1.weight.data)
-        torch.nn.init.xavier_uniform(self.conv2.weight.data)
-        torch.nn.init.xavier_uniform(self.conv3.weight)
-        torch.nn.init.xavier_uniform(self.conv4.weight)
-        torch.nn.init.xavier_uniform(self.conv5.weight)
-        torch.nn.init.xavier_uniform(self.conv6.weight)
+        torch.nn.init.xavier_uniform_(self.conv1.weight.data)
+        torch.nn.init.xavier_uniform_(self.conv2.weight.data)
+        torch.nn.init.xavier_uniform_(self.conv3.weight)
+        torch.nn.init.xavier_uniform_(self.conv4.weight)
+        torch.nn.init.xavier_uniform_(self.conv5.weight)
+        torch.nn.init.xavier_uniform_(self.conv6.weight)
         #self.conv_layers.apply(initialize_weights)
         self.fc_layers.apply(initialize_weights)
 
 
     def forward(self, initial_den_field):
         m = nn.LeakyReLU(negative_slope = self.beta)
-        c1 = m(self.conv1(initial_den_field.float())) #(864,864,864,32)
+        c1 = m(self.conv1(initial_den_field.float())) #(75,75,75,32) -- recompute.
         #print(type(c1))
-        c2 = m(self.conv2(c1)) # (864,864,864,32)
+        c2 = m(self.conv2(c1)) # (75,75,75,32)
         p1 = self.pool1(c2+c1) # (862,862,862,32)      
         #print(c1.shape,c2.shape)
         c3 = m(self.conv3(p1)) # (862,862,862,64)
