@@ -297,32 +297,32 @@ class CNN_skip(nn.Module):
 
             # 2nd conv layer --- (864,864,864,32) ---> (864,864,864,32)
         self.conv2=nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-        self.pool1=nn.MaxPool3d((2, 2, 2)), # (864,864,864,32) ---> (862,862,862,32)
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
+        self.pool1=nn.MaxPool3d((2, 2, 2)) # (864,864,864,32) ---> (862,862,862,32)
             #nn.LeakyReLU(negative_slope=self.beta),
 
             # 3rd conv layer --- (862,862,862,32) ---> (862,862,862,64)
         self.conv3=nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-        self.pool2=nn.MaxPool3d((2, 2, 2)),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
+        self.pool2=nn.MaxPool3d((2, 2, 2))
             #nn.LeakyReLU(negative_slope=self.beta), (862,862,862,64) ---> (860,860,860,64)
 
             # 4th conv layer --- (860,860,860,64) ---> (860,860,860,64)
         self.conv4=nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-        self.pool3=nn.MaxPool3d((2, 2, 2)), #(860,860,860,64) ---> (858,858,858,64)
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
+        self.pool3=nn.MaxPool3d((2, 2, 2)) #(860,860,860,64) ---> (858,858,858,64)
             #nn.LeakyReLU(negative_slope=self.beta),
 
             # 5th conv layer --- (858,858,858,64) ---> (858,858,858,128)
         self.conv5=nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-        self.pool4=nn.MaxPool3d((2, 2, 2)), # (858,858,858,128)---> (856,856,856,128)
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
+        self.pool4=nn.MaxPool3d((2, 2, 2)) # (858,858,858,128)---> (856,856,856,128)
             #nn.LeakyReLU(negative_slope=self.beta),
 
             # 6th conv layer --- (856,856,856,128) ---> (856,856,856,128)
         self.conv6=nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-        self.pool5=nn.MaxPool3d((2, 2, 2)), # (856,856,856,128) ---> (854,854,854,128)
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
+        self.pool5=nn.MaxPool3d((2, 2, 2)) # (856,856,856,128) ---> (854,854,854,128)
             #nn.LeakyReLU(negative_slope=self.beta),
         
 
@@ -344,30 +344,42 @@ class CNN_skip(nn.Module):
             if isinstance(N_net, nn.Conv3d) or isinstance(N_net, nn.Linear):
                 nn.init.xavier_uniform_(N_net.weight)
 
-        self.conv_layers.apply(initialize_weights)
+        torch.nn.init.xavier_uniform(self.conv1.weight.data)
+        torch.nn.init.xavier_uniform(self.conv2.weight.data)
+        torch.nn.init.xavier_uniform(self.conv3.weight)
+        torch.nn.init.xavier_uniform(self.conv4.weight)
+        torch.nn.init.xavier_uniform(self.conv5.weight)
+        torch.nn.init.xavier_uniform(self.conv6.weight)
+        #self.conv_layers.apply(initialize_weights)
         self.fc_layers.apply(initialize_weights)
 
 
     def forward(self, initial_den_field):
-        m = nn.LeakyReLU(negative_slope = self.relu_beta)
-        c1 = m(self.conv1(x.float())) #(864,864,864,32)
-
+        m = nn.LeakyReLU(negative_slope = self.beta)
+        c1 = m(self.conv1(initial_den_field.float())) #(864,864,864,32)
+        #print(type(c1))
         c2 = m(self.conv2(c1)) # (864,864,864,32)
         p1 = self.pool1(c2+c1) # (862,862,862,32)      
-
+        #print(c1.shape,c2.shape)
         c3 = m(self.conv3(p1)) # (862,862,862,64)
+        #print(c3.shape,'C3')
         p2 = self.pool2(c3) # (860,860,860,64)
-
+        #print(p2.shape,'P2')
         c4 = m(self.conv4(p2)) # (860,860,860, 64)
-        p3 = self.pool(c4+p2) # (858,858,858,64)
-
+        #print(c4.shape,'C4')
+        p3 = self.pool3(c4) # (858,858,858,64)
+        #print(p3.shape,'P3')
         c5 = m(self.conv5(p3)) # (858,858,858,128)
-        p4 = self.pool(c5) # (856,856,856,128)
+        #print(c5.shape,'C5')
+        p4 = self.pool4(c5+p3) # (856,856,856,128)
+        #print(p4.shape,'P4')
 
         c6 = m(self.conv6(p4)) # (856,856,856,128)
-        p5 = self.pool(c6+p4) # (854,854,854,128)
+       # print(c6.shape,'C6')
+        p5 = self.pool5(c6+p4) # (854,854,854,128)
+       # print(p5.shape,'P5')
         # Skip connections: c1+c2 --> p1
-        #                   p2+c4 --> p3
+        #                   p3+c5 --> p4
         #                   p4+c6 --> p5
         conv_output = p5 # CANNOT USE SEQUENTIAL FOR SKIP, SORRY!
 
@@ -391,9 +403,9 @@ if __name__ == '__main__':
     path = ''
 
     # device for loading and processing the tensor data
-    device0 = torch.device("cuda") # I have to use "cpu" (Finn)
+    device0 = torch.device("cpu") # I have to use "cpu" (Finn)
     # device for doing the training
-    device = torch.device("cuda") # I have to use "cpu" (Finn)
+    device = torch.device("cpu") # I have to use "cpu" (Finn)
 
     sim_length = 256
     subbox_length = 75
