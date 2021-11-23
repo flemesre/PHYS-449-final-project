@@ -451,7 +451,7 @@ if __name__ == '__main__':
     # initial NN and optimizer
     model = CNN_skip().to(device)
     # loss_fcn = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, amsgrad=True)
 
     train_loss_history = []
     test_loss_history = []
