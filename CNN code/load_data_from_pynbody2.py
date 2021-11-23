@@ -9,11 +9,11 @@ def IC_file_name(idx):
 
 if __name__ == '__main__':
     # change the path to where you store the files on the local machine
-    path = '/mnt/c/Python_projects/data_test/'
+    path = ''
 
     sim_size = 256
 
-    data_list = [1,2]
+    data_list = [4,5]
 
     for index in data_list:
         # do I need to use open() for better file handling?

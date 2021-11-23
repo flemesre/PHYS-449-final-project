@@ -1,5 +1,5 @@
 import numpy as np
-import torch, random, time, sys
+import torch, random, time
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -129,23 +129,23 @@ def compute_subbox(i0, j0, k0, input_matrix):
     return output_matrix
 
 def which_sim(num):
-    for K in training_list:
-        if num < train_num_particles[K-1]:
-            return K, num
+    for K in range(len(training_list)):
+        if num < train_num_particles[K]:
+            return sims[K], num
         else:
-            num -= train_num_particles[K - 1]
+            num -= train_num_particles[K]
 
 class TrainingDataset(torch.utils.data.Dataset):
 
     def __init__(self):
         self.output_data = []
         for idx in training_list:
-            self.output_data.append(norm_halo_mass[idx-1].to(device0, dtype=torch.float32))
+            self.output_data.append(norm_halo_mass[training_list.index(idx)].to(device0, dtype=torch.float32))
 
     def __len__(self):
         training_num = 0
         for idx in training_list:
-            training_num += train_num_particles[idx-1]
+            training_num += train_num_particles[training_list.index(idx)]
         return training_num
 
     def __getitem__(self, raw_idx):
@@ -155,11 +155,11 @@ class TrainingDataset(torch.utils.data.Dataset):
         J = sim_list[sims.index(sim_num)][idx]
 
         i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
-        subbox = _3d_den[sim_num - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
+        subbox = _3d_den[sims.index(sim_num)][i0 - subbox_pad:i0 + subbox_pad + 1,
                  j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
 
         input_data = subbox.to(device0, dtype=torch.float32)
-        return torch.unsqueeze(input_data, 0), self.output_data[sim_num-1][idx]
+        return torch.unsqueeze(input_data, 0), self.output_data[sims.index(sim_num)][idx]
 
 class TestingDataset(torch.utils.data.Dataset):
 
@@ -181,7 +181,7 @@ class TestingDataset(torch.utils.data.Dataset):
         J = sim_list[sims.index(test_sim)][idx] # index in original, unscreened dataset
 
         i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
-        subbox = _3d_den[test_sim - 1][i0 - subbox_pad:i0 + subbox_pad + 1,
+        subbox = _3d_den[sims.index(test_sim)][i0 - subbox_pad:i0 + subbox_pad + 1,
                  j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
         input_data = subbox.to(device0, dtype=torch.float32)
         return torch.unsqueeze(input_data, 0), self.output_data[raw_idx]
@@ -202,7 +202,7 @@ class CNN(nn.Module):
 
         self.beta = 0.03 # Leaky ReLU coeff
 
-        self.gamma = nn.Parameter(torch.tensor(1.0)) # gamma in Cauchy loss
+        self.gamma = torch.tensor(1.0) # gamma in Cauchy loss
 
         self.conv_layers = nn.Sequential(
             # 1st conv layer
@@ -284,9 +284,9 @@ if __name__ == '__main__':
     path = ''
 
     # device for loading and processing the tensor data
-    device0 = torch.device("cuda")
+    device0 = torch.device("cuda") # I have to use "cpu" (Finn)
     # device for doing the training
-    device = torch.device("cuda")
+    device = torch.device("cuda") # I have to use "cpu" (Finn)
 
     sim_length = 256
     subbox_length = 75
@@ -300,20 +300,17 @@ if __name__ == '__main__':
     test_num = 8  # number of particles used in testing
 
     learning_rate = 5e-5 # author's number 0.00005
-    num_iterations = 25001 # 25001
+    num_iterations = 5001
     save_model = True
-
-    load_model = False
-    plot_with_plotly = True
 
     # prepare coords
     iord = range(sim_length ** 3)
     i, j, k = np.unravel_index(iord, (sim_length, sim_length, sim_length))
     coords = np.column_stack((i, j, k))
 
-    sims = [1, 2]
-    training_list = [1]
-    test_sim = 2 # which simulation is used for testing
+    sims = [4, 5]
+    training_list = [4]
+    test_sim = 5 # which simulation is used for testing
 
     halo_mass = get_halo_mass(sims)
     sim_list, train_num_particles = get_sim_list(sims)
@@ -325,13 +322,6 @@ if __name__ == '__main__':
     test_dataset = TestingDataset()
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=test_num, shuffle=False)
 
-    if load_model:
-        model = CNN()
-        model.load_state_dict(torch.load('CNN_itr5001time1637333485.pt'))
-        model.eval()
-        print(model.gamma)
-        sys.exit()
-
     # initial NN and optimizer
     model = CNN().to(device)
     # loss_fcn = nn.MSELoss()
@@ -339,7 +329,6 @@ if __name__ == '__main__':
 
     train_loss_history = []
     test_loss_history = []
-    gamma_history = []
     graph_x_axis = np.append(np.arange(0,num_iterations-1,10),num_iterations-1)
         # np.linspace(0,num_iterations-1,(num_iterations-1)//10+1)
 
@@ -371,7 +360,6 @@ if __name__ == '__main__':
 
             train_loss_history.append(loss.detach().cpu())
             test_loss_history.append(test_loss.detach().cpu())
-            gamma_history.append(model.gamma.detach().cpu())
             end = time.time()
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
 
@@ -384,34 +372,11 @@ if __name__ == '__main__':
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
             break
 
-    if save_model:
-        torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
-
-    plt.figure()
-    plt.plot(graph_x_axis, train_loss_history, label='training loss')
-    plt.plot(graph_x_axis, test_loss_history, label='testing loss')
-    plt.title('CNN training performance, ' + str(num_iterations) + " iterations, "+str(int(time.time())))
+    plt.plot(graph_x_axis,train_loss_history,label='training loss')
+    plt.plot(graph_x_axis,test_loss_history,label='testing loss')
+    plt.title('CNN training performance')
     plt.legend(loc='best')
     plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
-
-    plt.figure()
-    plt.plot(graph_x_axis,gamma_history)
-    plt.title('CNN gamma history, ' + str(num_iterations) + ' iterations, '+ str(int(time.time())))
-    plt.savefig("CNN_gamma_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
-
-    if plot_with_plotly:
-        import plotly.express as px
-        import plotly.io as pi
-
-        data_frame = {'iterations':graph_x_axis, 'training loss': train_loss_history, 'testing loss': test_loss_history}
-        fig = px.line(data_frame, x='iterations',y=["training loss", "testing loss"],
-                      title='CNN training performance, '+ str(num_iterations)+'iterations, '+str(int(time.time())),
-                      labels={'value':'loss'})
-        fig.write_html("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
-
-        data_frame2 = {'iterations':graph_x_axis, 'gamma':gamma_history}
-        fig2 = px.line(data_frame2,x='iterations',y='gamma',
-                       title='CNN gamma history, ' + str(num_iterations) + ' iterations, '+str(int(time.time())))
-        fig2.write_html("CNN_gamma_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
-
     plt.show()
+    if save_model:
+        torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
