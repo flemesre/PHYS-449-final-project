@@ -325,7 +325,7 @@ class CNN_skip(nn.Module):
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool5=nn.MaxPool3d((2, 2, 2)) # (856,856,856,128) ---> (854,854,854,128)
             #nn.LeakyReLU(negative_slope=self.beta),
-        
+
 
         self.fc_layers = nn.Sequential(
             # 1st fc layer
@@ -360,7 +360,7 @@ class CNN_skip(nn.Module):
         c1 = m(self.conv1(initial_den_field.float())) #(75,75,75,32) -- recompute.
         #print(type(c1))
         c2 = m(self.conv2(c1)) # (75,75,75,32)
-        p1 = self.pool1(c2+c1) # (862,862,862,32)      
+        p1 = self.pool1(c2+c1) # (862,862,862,32)
         #print(c1.shape,c2.shape)
         c3 = m(self.conv3(p1)) # (862,862,862,64)
         #print(c3.shape,'C3')
@@ -392,11 +392,9 @@ class CNN_skip(nn.Module):
 
 def custom_loss_fcn(MODEL,TENSOR1,TENSOR2):
     thing_inside_ln = 1+((TENSOR1-TENSOR2)/MODEL.gamma)**2
-    before_avging = torch.log(MODEL.gamma)+torch.log(thing_inside_ln)
-    # print(f"gamma = {MODEL.gamma}")
-    # print(f"before ln = {thing_inside_ln}")
-    # print(f"before avg = {before_avging}")
-    # print(f"loss = {torch.mean(before_avging)}")
+    other_thing = torch.atan((max(TENSOR1) - TENSOR2)/MODEL.gamma) - torch.atan((min(TENSOR1) - TENSOR2)/MODEL.gamma)
+    before_avging = torch.log(MODEL.gamma) + torch.log(thing_inside_ln) + torch.log(other_thing)
+
     return torch.mean(before_avging)
 
 if __name__ == '__main__':
@@ -507,7 +505,7 @@ if __name__ == '__main__':
     plt.title('CNN training performance')
     plt.legend(loc='best')
     plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
-    
+
     plt.figure()
     plt.plot(graph_x_axis,gamma_history)
     plt.title('CNN gamma history, ' + str(num_iterations) + ' iterations, '+ str(int(time.time())))
