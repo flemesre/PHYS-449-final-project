@@ -5,6 +5,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import argparse, sys
 
+
 def get_halo_mass(sims):
     HALO_mass=[]
     for sim_index in sims:
@@ -15,6 +16,7 @@ def get_halo_mass(sims):
         print()
         HALO_mass.append(halo_mass0)
     return HALO_mass
+
 
 def get_sim_list(sims):
     SIM_list = []
@@ -49,6 +51,7 @@ def get_sim_list(sims):
         SIM_list.append(sim_1_list)
 
     return SIM_list, TEST_num_particles
+
 
 def data_processing(index):
     # do I need to use open() for better file handling?
@@ -95,7 +98,7 @@ def data_processing(index):
 
         except OSError:  # FileNotFoundError
             print('norm_halo_mass'+str(sim_index)+'.npy not found, creating norm_halo_mass'
-                  +str(sim_index)+'.npt')
+                  + str(sim_index)+'.npt')
             # creating restricted_halo_mass, which uses the log mass
             # removing the particles in halo_mass that are outside of the mass range
             restricted_halo_mass = torch.tensor(np.zeros(train_num_particles[sims.index(sim_index)])).to(device0)
@@ -118,6 +121,7 @@ def data_processing(index):
 
     return _3d_DEN, NORM_halo_mass
 
+
 def compute_subbox(i0, j0, k0, input_matrix):
     output_matrix = np.zeros((subbox_length, subbox_length, subbox_length))
     i0 -= subbox_length // 2
@@ -129,12 +133,14 @@ def compute_subbox(i0, j0, k0, input_matrix):
                 output_matrix[i, j, k] = input_matrix[(i + i0) % sim_length, (j + j0) % sim_length, (k + k0) % sim_length]
     return output_matrix
 
+
 def which_sim(num):
     for K in range(len(training_list)):
         if num < train_num_particles[K]:
             return sims[K], num
         else:
             num -= train_num_particles[K]
+
 
 class TrainingDataset(torch.utils.data.Dataset):
 
@@ -161,6 +167,7 @@ class TrainingDataset(torch.utils.data.Dataset):
 
         input_data = subbox.to(device0, dtype=torch.float32)
         return torch.unsqueeze(input_data, 0), self.output_data[sims.index(sim_num)][idx]
+
 
 class TestingDataset(torch.utils.data.Dataset):
 
@@ -299,7 +306,7 @@ class CNN_skip(nn.Module):
         # 2nd conv layer --- (864,864,864,32) ---> (864,864,864,32)
         self.conv2 = nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool1=nn.MaxPool3d((2, 2, 2)) # (864,864,864,32) ---> (862,862,862,32)
+        self.pool1 = nn.MaxPool3d((2, 2, 2)) # (864,864,864,32) ---> (862,862,862,32)
         # nn.LeakyReLU(negative_slope=self.beta),
 
         # 3rd conv layer --- (862,862,862,32) ---> (862,862,862,64)
@@ -315,15 +322,15 @@ class CNN_skip(nn.Module):
         # nn.LeakyReLU(negative_slope=self.beta),
 
         # 5th conv layer --- (858,858,858,64) ---> (858,858,858,128)
-        self.conv5=nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
+        self.conv5 = nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool4=nn.MaxPool3d((2, 2, 2))  # (858,858,858,128)---> (856,856,856,128)
+        self.pool4 = nn.MaxPool3d((2, 2, 2))  # (858,858,858,128)---> (856,856,856,128)
         # nn.LeakyReLU(negative_slope=self.beta),
 
         # 6th conv layer --- (856,856,856,128) ---> (856,856,856,128)
-        self.conv6=nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
+        self.conv6 = nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool5=nn.MaxPool3d((2, 2, 2))  # (856,856,856,128) ---> (854,854,854,128)
+        self.pool5 = nn.MaxPool3d((2, 2, 2))  # (856,856,856,128) ---> (854,854,854,128)
         # nn.LeakyReLU(negative_slope=self.beta),
 
         self.fc_layers = nn.Sequential(
