@@ -286,46 +286,45 @@ class CNN_skip(nn.Module):
         self.fc_layer2_neurons = 128
         self.fc_layer3_neurons = 1
 
-        self.beta = 0.03 # Leaky ReLU coeff
+        self.beta = 0.03  # Leaky ReLU coeff
 
-        self.gamma = torch.tensor(1.0) # gamma in Cauchy loss
+        self.gamma = torch.tensor(1.0)  # gamma in Cauchy loss
 
-        #self.conv_layers = nn.Sequential( 864+2-3/1 +1 = 863+1
-            # 1st conv layer --- (864,864,864,1) ---> (864,864,864,32)
-        self.conv1=nn.Conv3d(1,self.conv_layer1_kernels,(3,3,3),
-                      stride=1,padding=(1, 1, 1), padding_mode='zeros')
-            #nn.LeakyReLU(negative_slope=self.beta),
+        # self.conv_layers = nn.Sequential( 864+2-3/1 +1 = 863+1
+        # 1st conv layer --- (864,864,864,1) ---> (864,864,864,32)
+        self.conv1 = nn.Conv3d(1, self.conv_layer1_kernels, (3, 3, 3), stride=1, padding=(1, 1, 1),
+                               padding_mode='zeros')
+        # nn.LeakyReLU(negative_slope=self.beta),
 
-            # 2nd conv layer --- (864,864,864,32) ---> (864,864,864,32)
-        self.conv2=nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
+        # 2nd conv layer --- (864,864,864,32) ---> (864,864,864,32)
+        self.conv2 = nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool1=nn.MaxPool3d((2, 2, 2)) # (864,864,864,32) ---> (862,862,862,32)
-            #nn.LeakyReLU(negative_slope=self.beta),
+        # nn.LeakyReLU(negative_slope=self.beta),
 
-            # 3rd conv layer --- (862,862,862,32) ---> (862,862,862,64)
-        self.conv3=nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
+        # 3rd conv layer --- (862,862,862,32) ---> (862,862,862,64)
+        self.conv3 = nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool2=nn.MaxPool3d((2, 2, 2))
-            #nn.LeakyReLU(negative_slope=self.beta), (862,862,862,64) ---> (860,860,860,64)
+        self.pool2 = nn.MaxPool3d((2, 2, 2))
+        # nn.LeakyReLU(negative_slope=self.beta), (862,862,862,64) ---> (860,860,860,64)
 
-            # 4th conv layer --- (860,860,860,64) ---> (860,860,860,64)
-        self.conv4=nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
+        # 4th conv layer --- (860,860,860,64) ---> (860,860,860,64)
+        self.conv4 = nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool3=nn.MaxPool3d((2, 2, 2)) #(860,860,860,64) ---> (858,858,858,64)
-            #nn.LeakyReLU(negative_slope=self.beta),
+        self.pool3 = nn.MaxPool3d((2, 2, 2))  # (860,860,860,64) ---> (858,858,858,64)
+        # nn.LeakyReLU(negative_slope=self.beta),
 
-            # 5th conv layer --- (858,858,858,64) ---> (858,858,858,128)
+        # 5th conv layer --- (858,858,858,64) ---> (858,858,858,128)
         self.conv5=nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool4=nn.MaxPool3d((2, 2, 2)) # (858,858,858,128)---> (856,856,856,128)
-            #nn.LeakyReLU(negative_slope=self.beta),
+        self.pool4=nn.MaxPool3d((2, 2, 2))  # (858,858,858,128)---> (856,856,856,128)
+        # nn.LeakyReLU(negative_slope=self.beta),
 
-            # 6th conv layer --- (856,856,856,128) ---> (856,856,856,128)
+        # 6th conv layer --- (856,856,856,128) ---> (856,856,856,128)
         self.conv6=nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool5=nn.MaxPool3d((2, 2, 2)) # (856,856,856,128) ---> (854,854,854,128)
-            #nn.LeakyReLU(negative_slope=self.beta),
-
+        self.pool5=nn.MaxPool3d((2, 2, 2))  # (856,856,856,128) ---> (854,854,854,128)
+        # nn.LeakyReLU(negative_slope=self.beta),
 
         self.fc_layers = nn.Sequential(
             # 1st fc layer
@@ -351,73 +350,75 @@ class CNN_skip(nn.Module):
         torch.nn.init.xavier_uniform_(self.conv4.weight)
         torch.nn.init.xavier_uniform_(self.conv5.weight)
         torch.nn.init.xavier_uniform_(self.conv6.weight)
-        #self.conv_layers.apply(initialize_weights)
+        # self.conv_layers.apply(initialize_weights)
         self.fc_layers.apply(initialize_weights)
-
 
     def forward(self, initial_den_field):
         m = nn.LeakyReLU(negative_slope = self.beta)
-        c1 = m(self.conv1(initial_den_field.float())) #(75,75,75,32) -- recompute.
-        #print(type(c1))
-        c2 = m(self.conv2(c1)) # (75,75,75,32)
-        p1 = self.pool1(c2+c1) # (862,862,862,32)
-        #print(c1.shape,c2.shape)
-        c3 = m(self.conv3(p1)) # (862,862,862,64)
-        #print(c3.shape,'C3')
-        p2 = self.pool2(c3) # (860,860,860,64)
-        #print(p2.shape,'P2')
-        c4 = m(self.conv4(p2)) # (860,860,860, 64)
-        #print(c4.shape,'C4')
-        p3 = self.pool3(c4) # (858,858,858,64)
-        #print(p3.shape,'P3')
-        c5 = m(self.conv5(p3)) # (858,858,858,128)
-        #print(c5.shape,'C5')
-        p4 = self.pool4(c5+p3) # (856,856,856,128)
-        #print(p4.shape,'P4')
+        c1 = m(self.conv1(initial_den_field.float()))  # (75,75,75,32) -- recompute.
+        # print(type(c1))
+        c2 = m(self.conv2(c1))  # (75,75,75,32)
+        p1 = self.pool1(c2+c1)  # (862,862,862,32)
+        # print(c1.shape,c2.shape)
+        c3 = m(self.conv3(p1))  # (862,862,862,64)
+        # print(c3.shape,'C3')
+        p2 = self.pool2(c3)  # (860,860,860,64)
+        # print(p2.shape,'P2')
+        c4 = m(self.conv4(p2))  # (860,860,860, 64)
+        # print(c4.shape,'C4')
+        p3 = self.pool3(c4)  # (858,858,858,64)
+        # print(p3.shape,'P3')
+        c5 = m(self.conv5(p3))  # (858,858,858,128)
+        # print(c5.shape,'C5')
+        p4 = self.pool4(c5+p3)  # (856,856,856,128)
+        # print(p4.shape,'P4')
 
-        c6 = m(self.conv6(p4)) # (856,856,856,128)
-       # print(c6.shape,'C6')
-        p5 = self.pool5(c6+p4) # (854,854,854,128)
-       # print(p5.shape,'P5')
+        c6 = m(self.conv6(p4))  # (856,856,856,128)
+        # print(c6.shape,'C6')
+        p5 = self.pool5(c6+p4)  # (854,854,854,128)
+        # print(p5.shape,'P5')
         # Skip connections: c1+c2 --> p1
         #                   p3+c5 --> p4
         #                   p4+c6 --> p5
-        conv_output = p5 # CANNOT USE SEQUENTIAL FOR SKIP, SORRY!
+        conv_output = p5  # CANNOT USE SEQUENTIAL FOR SKIP, SORRY!
 
-        #conv_output = self.conv_layers(initial_den_field)
+        # conv_output = self.conv_layers(initial_den_field)
         # print(f"conv output shape = {conv_output.shape}")
         fc_input = torch.flatten(conv_output, start_dim=1)
         # print(f"fc input shape = {fc_input.shape}")
         return self.fc_layers(fc_input)
 
-def custom_loss_fcn(MODEL,TENSOR1,TENSOR2):
-    thing_inside_ln = 1+((TENSOR1-TENSOR2)/MODEL.gamma)**2
-    other_thing = torch.atan((max(TENSOR1) - TENSOR2)/MODEL.gamma) - torch.atan((min(TENSOR1) - TENSOR2)/MODEL.gamma)
+
+def custom_loss_fcn(MODEL, tensor1, tensor2):
+    thing_inside_ln = 1+((tensor1-tensor2)/MODEL.gamma)**2
+    other_thing = torch.atan((max(tensor1) - tensor2)/MODEL.gamma) - torch.atan((min(tensor1) - tensor2)/MODEL.gamma)
     before_avging = torch.log(MODEL.gamma) + torch.log(thing_inside_ln) + torch.log(other_thing)
 
     return torch.mean(before_avging)
+
 
 if __name__ == '__main__':
     # change the path to where you store the files on the local machine
     path = ''
 
     # device for loading and processing the tensor data
-    device0 = torch.device("cpu") # I have to use "cpu" (Finn)
+    device0 = "cuda" if torch.cuda.is_available() else "cpu"
     # device for doing the training
-    device = torch.device("cpu") # I have to use "cpu" (Finn)
+    device = "cuda" if torch.cuda.is_available() else "cpu"  # use CUDA if available on machine, big speedup
+    print("Using {} device".format(device))
 
     sim_length = 256
     subbox_length = 75
-    subbox_pad = subbox_length // 2 # expand the density field by this amount on each side to emulate cyclic BC
+    subbox_pad = subbox_length // 2  # expand the density field by this amount on each side to emulate cyclic BC
     num_particles = sim_length ** 3
 
     log_low_mass_limit = 11
     log_high_mass_limit = 13.4
 
-    Batch_size = 8 # 64 in the paper
+    Batch_size = 8  # 64 in the paper
     test_num = 8  # number of particles used in testing
 
-    learning_rate = 5e-5 # author's number 0.00005
+    learning_rate = 5e-5  # author's number 0.00005
     num_iterations = 5001
     save_model = True
 
@@ -428,7 +429,7 @@ if __name__ == '__main__':
 
     sims = [4, 5]
     training_list = [4]
-    test_sim = 5 # which simulation is used for testing
+    test_sim = 5  # which simulation is used for testing
 
     halo_mass = get_halo_mass(sims)
     sim_list, train_num_particles = get_sim_list(sims)
@@ -455,8 +456,8 @@ if __name__ == '__main__':
     test_loss_history = []
     gamma_history = []
 
-    graph_x_axis = np.append(np.arange(0,num_iterations-1,10),num_iterations-1)
-        # np.linspace(0,num_iterations-1,(num_iterations-1)//10+1)
+    graph_x_axis = np.append(np.arange(0, num_iterations-1, 10), num_iterations-1)
+    # np.linspace(0,num_iterations-1,(num_iterations-1)//10+1)
 
     start = time.time()
     for batch, (_den_field, _true_mass) in enumerate(train_dataloader):
@@ -500,29 +501,29 @@ if __name__ == '__main__':
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
             break
 
-    plt.plot(graph_x_axis,train_loss_history,label='training loss')
-    plt.plot(graph_x_axis,test_loss_history,label='testing loss')
+    plt.plot(graph_x_axis, train_loss_history,label='training loss')
+    plt.plot(graph_x_axis, test_loss_history,label='testing loss')
     plt.title('CNN training performance')
     plt.legend(loc='best')
     plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
 
     plt.figure()
-    plt.plot(graph_x_axis,gamma_history)
-    plt.title('CNN gamma history, ' + str(num_iterations) + ' iterations, '+ str(int(time.time())))
+    plt.plot(graph_x_axis, gamma_history)
+    plt.title('CNN gamma history, ' + str(num_iterations) + ' iterations, ' + str(int(time.time())))
     plt.savefig("CNN_gamma_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
 
     if plot_with_plotly:
         import plotly.express as px
         import plotly.io as pi
 
-        data_frame = {'iterations':graph_x_axis, 'training loss': train_loss_history, 'testing loss': test_loss_history}
-        fig = px.line(data_frame, x='iterations',y=["training loss", "testing loss"],
-                      title='CNN training performance, '+ str(num_iterations)+'iterations, '+str(int(time.time())),
+        data_frame = {'iterations': graph_x_axis, 'training loss': train_loss_history, 'testing loss': test_loss_history}
+        fig = px.line(data_frame, x='iterations', y=["training loss", "testing loss"],
+                      title='CNN training performance, ' + str(num_iterations)+'iterations, '+str(int(time.time())),
                       labels={'value':'loss'})
         fig.write_html("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
 
-        data_frame2 = {'iterations':graph_x_axis, 'gamma':gamma_history}
-        fig2 = px.line(data_frame2,x='iterations',y='gamma',
+        data_frame2 = {'iterations' : graph_x_axis, 'gamma' : gamma_history}
+        fig2 = px.line(data_frame2, x='iterations', y='gamma',
                        title='CNN gamma history, ' + str(num_iterations) + ' iterations, '+str(int(time.time())))
         fig2.write_html("CNN_gamma_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
 
