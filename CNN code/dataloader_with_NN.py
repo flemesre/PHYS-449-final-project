@@ -3,7 +3,7 @@ import torch, random, time
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
-import argparse
+import argparse, sys
 
 def get_halo_mass(sims):
     HALO_mass=[]
