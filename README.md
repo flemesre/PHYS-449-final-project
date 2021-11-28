@@ -16,7 +16,7 @@ Github: https://github.com/lluciesmith/DeepHalos
 
 
 ## Command line parameters:
-''sh
+```sh
 usage: main.py [-h] [--model-type MODEL_TYPE] [--param PARAM] [--data DATA] [--res-path RES_PATH]
                [--model-load MODEL_LOAD] [-v V]
 
@@ -34,10 +34,10 @@ optional arguments:
   -v V                  Verbosity
 
 
-''
+```
 
 Example command: 
-''sh
+```sh
 python main.py --model-type base --param params/param.json
-''
+```
 Runs the model with the same model as used in the paper, specfying the location of the param file for hyperparameters. Also takes 'skip' as an argument, which runs a version with skip connections.
