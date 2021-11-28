@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 import os
+import json
 import argparse
 import torch, random, time
 import torch.nn as nn
@@ -46,6 +47,7 @@ if __name__ == '__main__':
     print('Hello world!')
     parser =argparse.ArgumentParser(description = '3D CNN for cosmo ICs')
     parser.add_argument('--model-type',help = 'model architecture')
+    parser.add_argument('--param',help = 'param file directory+name')
     parser.add_argument('--data', help = 'directory/file for input density array')
     parser.add_argument('--res-path', help = 'path to save plots/results/model')
     parser.add_argument('--model-load',help ='name of a CNN model that has been previously saved that you wish to load')
@@ -53,7 +55,29 @@ if __name__ == '__main__':
     args =parser.parse_args()
 
     
+    # opening the param files:
+    with open(args.param) as paramfile:
+        param = json.load(paramfile)
+    paramfile.close()
 
+    print(param['hyperparams']) # COMMENT OUT IF NECESSARY
+    print(param['data_params'])
+    #learning_rate =param['hyperparams']['learning_rate']
+    #num_iterations = param['hyperparams']['num_iterations']
+    #Batch_size= param['hyperparams']['batch_size']
+    #test_num = param['hyperparams']['test_num']
+
+
+    #save_model = param['hyperparams']['save_model']
+    # if save_model != 1:
+        # save_model = False
+    # else:
+        # save_model= True
+    
+    #
+    #log_low_mass_limit = param['data_params']['log_low_mass_limit']
+    #log_high_mass_limit = param['data_params']['log_high_mass_limit']
+    #
 
 
     # INSERT DATALOADER HERE
@@ -71,8 +95,10 @@ if __name__ == '__main__':
 
     if args.model_type == 'base':
         model = CNN().to(device)
+        print(model)
     elif args.model_type == 'skip':
         model = CNN_skip().to(device)#'CNN_skip'
+        print(model)
     else:
         print('Invalid model!')
 
