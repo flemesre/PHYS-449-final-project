@@ -1,0 +1,12 @@
+{
+    "hyperparams":{ "batch_size": 8,
+              "test_num":8,
+              "learning_rate":5e-5,
+              "num_iterations":5001,
+              "save_model":1
+    },
+    "data_params":{
+        "log_low_mass_limit":11,
+        "log_high_mass_limit":13.4
+    }
+}
