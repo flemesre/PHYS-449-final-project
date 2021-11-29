@@ -1,14 +1,5 @@
 Data at: https://console.cloud.google.com/storage/browser/deep-halos-data/full-data?cloudshell=false&hl=en-AU&project=deephalos&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false
 
-## Cut and paste
-
-(This is only on my machine)
-```
-python3 /mnt/c/Python_projects/data_test/load_data_from_pynbody2.py
-```
-```
-python3 /mnt/d/Downloads/n8t.py
-```
 
 ## Questions
 
@@ -72,6 +63,8 @@ use this code: https://pynbody.github.io/pynbody/tutorials/data_access.html
 `f.families()`: `[<Family dm>]`, ie only dark matter, as expected
 
 `f.loadable_keys()`,`f.dm.loadable_keys()`: `['iord', 'vel', 'mass', 'pos']`
+
+Note: it seems that `.gadget3` and `.gadget2` have essentially the same format. ie `f['rho']` still has 16777216 points in it, and the numbers look the same as .gagdet3 (around 8)
 
 ### Keys
 
