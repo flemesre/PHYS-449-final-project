@@ -43,10 +43,6 @@ Figure 7: : The loss function evaluated for the training set and the validation 
 
 So it sounds like each iteration = one batch
 
-# Code
-
-## 1
-
 # Details
 ## 1
 Output of the final conv layer/input to the first fully connected layer
