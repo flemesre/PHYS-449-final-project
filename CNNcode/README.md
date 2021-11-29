@@ -35,5 +35,4 @@ python3 /mnt/c/Python_projects/data_test/load_data_from_pynbody2.py
 python3 /mnt/d/Downloads/n8t.py
 ```
 
-## Debug log
 
