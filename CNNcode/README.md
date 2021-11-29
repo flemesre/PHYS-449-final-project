@@ -23,6 +23,17 @@ run `dataloader_with_NN.py` to do the data processing, dataloading, and to train
 - More testing, especially on the other simulations
 - Setting both `device` and `device0` to `'cuda'` is recommended (~500 batches per second, batch size = 64)
 
-## Done
-- all the data processing steps outlined in https://github.com/flemesre/PHYS-449-final-project/blob/main/Documentations/data.md#data-processing has been implemented
-- Xavier initialization for the weights
+## Shortcuts
+(Cyrus: This is only meant for my machine)
+```
+python3 /mnt/c/Python_projects/data_test/Nov29_load_data_from_pynbody2.py
+```
+```
+python3 /mnt/c/Python_projects/data_test/load_data_from_pynbody2.py
+```
+```
+python3 /mnt/d/Downloads/n8t.py
+```
+
+## Debug log
+
