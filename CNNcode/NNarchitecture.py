@@ -4,7 +4,7 @@ import torch.nn.functional as func
 class Net(nn.Module):
     # based on architecture in :
     #https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
-    
+
     def __init__(self):
         super(Net,self).__init__()
         '''
@@ -22,25 +22,25 @@ class Net(nn.Module):
             relu+FC3: INPUT OF 80 UNITS, OUTPUT OF 25
             FC4: INPUT OF 25 UNITS, OUTPUT OF 5
             Run through a softmax layer before being passed
-        
+
         '''
         # 864 x 864 x 864 x n_cx, filter of 3
                 # 864 - 3+ 1 ---> 862
         self.conv1= nn.Conv3d(1,32,3) # (864x864x864x1) -->(862x862x862x32) # 14-3/1 +1 (12)
         self.conv2 = nn.Conv3d(32,32,3) # (862x862x862x32)-->(860x860x860x32) 861 - 3+1
-        self.pool1 = nn.MaxPool3d(3) # 858x858x857x32 
+        self.pool1 = nn.MaxPool3d(3) # 858x858x857x32
 
-        self.conv3 = nn.Conv3d(32,64,3) # 857x857x857x32 -->855x855x855x64 
+        self.conv3 = nn.Conv3d(32,64,3) # 857x857x857x32 -->855x855x855x64
         self.pool2 = nn.MaxPool3d(3) # 853x853x853x64
 
         self.conv4 = nn.Conv3d(64,128,3) # (853x853x853x64)-->(851x851x851x128)
-        self.pool3 = nn.MaxPool3d(2) # 849x849x849x128 
+        self.pool3 = nn.MaxPool3d(2) # 849x849x849x128
 
         self.conv5 = nn.Conv3d(128,128,3) # (849x849x849x128 -->(847x847x847x128)
-        self.pool4 = nn.MaxPool3d(3) # 845x845x845x128 
+        self.pool4 = nn.MaxPool3d(3) # 845x845x845x128
 
-        self.conv6 = nn.Conv3d(128,128,3) # 845x845x845x128 -->843x843x843x128 
-        self.pool5 = nn.MaxPool3d(2) # 842x842x842x128  
+        self.conv6 = nn.Conv3d(128,128,3) # 845x845x845x128 -->843x843x843x128
+        self.pool5 = nn.MaxPool3d(2) # 842x842x842x128
 
 
 
@@ -49,15 +49,15 @@ class Net(nn.Module):
         self.fc3 = nn.Linear(128,1)
 
         #self.softmax = nn.Softmax(dim=0)
-        
-        
+
+
     def forward(self,x):
         #print(x.shape)
-        
+
         c1 = func.relu(self.conv1(x.float()))
 
         c2 = func.relu(self.conv2(c1))
-        p1 = self.pool1(c2)       
+        p1 = self.pool1(c2)
 
         c3 = func.relu(self.conv3(p1))
         p2 = self.pool2(c3)
@@ -85,7 +85,7 @@ class Net(nn.Module):
 
         return f4
 
-    
+
     def reset(self):
         self.conv1.reset_parameters()
         self.conv2.reset_parameters()
@@ -108,7 +108,7 @@ class Net(nn.Module):
         obj_val.backward()
         optimizer.step()
         return obj_val.item(),prediction
-    
+
     def test(self, inputs,targets, loss, epoch):
         '''
         INPUTS: inuts ---> data to test with
@@ -118,9 +118,9 @@ class Net(nn.Module):
 
         OUTPUTS: latest computed loss from test data
                   prediction --> array of predicted digits
-        
-        
-        
+
+
+
         '''
 
 
@@ -131,12 +131,12 @@ class Net(nn.Module):
             prediction = self.forward(inputs)
             cross_val= loss(prediction, targets)
         return cross_val.item(),prediction
-    
+
 # ask about implementing CNN with images. Why can't i iterate over them
 
 #estMNIST = Net().to(torch.device("cpu"))
 class NetSkip(nn.Module):
-        def __init__(self):
+    def __init__(self):
         super(Net,self).__init__()
         '''
             Convolution Neural Network with the following structure
@@ -153,23 +153,23 @@ class NetSkip(nn.Module):
             relu+FC3: INPUT OF 80 UNITS, OUTPUT OF 25
             FC4: INPUT OF 25 UNITS, OUTPUT OF 5
             Run through a softmax layer before being passed
-        
+
         '''
         self.conv1= nn.Conv3d(1,10,3) # (14x14x1) -->(10x10x10) # 14-3/1 +1 (12)
         self.conv2 = nn.Conv3d(10,15,3) # (10x10x10)-->(6x6x15)
-        self.pool1 = nn.MaxPool3d(2) # 3x3x15 
+        self.pool1 = nn.MaxPool3d(2) # 3x3x15
 
         self.conv3 = nn.Conv3d(10,15,3) # (10x10x10)-->(6x6x15)
-        self.pool2 = nn.MaxPool3d(2) # 3x3x15 
+        self.pool2 = nn.MaxPool3d(2) # 3x3x15
 
         self.conv4 = nn.Conv3d(10,15,3) # (10x10x10)-->(6x6x15)
-        self.pool3 = nn.MaxPool3d(2) # 3x3x15 
+        self.pool3 = nn.MaxPool3d(2) # 3x3x15
 
         self.conv5 = nn.Conv3d(10,15,3) # (10x10x10)-->(6x6x15)
-        self.pool4 = nn.MaxPool3d(2) # 3x3x15 
+        self.pool4 = nn.MaxPool3d(2) # 3x3x15
 
         self.conv6 = nn.Conv3d(10,15,3) # (10x10x10)-->(6x6x15)
-        self.pool5 = nn.MaxPool3d(2) # 3x3x15 
+        self.pool5 = nn.MaxPool3d(2) # 3x3x15
 
 
 
@@ -178,15 +178,15 @@ class NetSkip(nn.Module):
         self.fc3 = nn.Linear(80,25)
 
         #self.softmax = nn.Softmax(dim=0)
-        
-        
+
+
     def forward(self,x):
         #print(x.shape)
-        
+
         c1 = func.relu(self.conv1(x.float()))
 
         c2 = func.relu(self.conv2(c1))
-        p1 = self.pool1(c2)       
+        p1 = self.pool1(c2)
 
         c3 = func.relu(self.conv3(p1))
         p2 = self.pool2(c3)
@@ -214,7 +214,7 @@ class NetSkip(nn.Module):
 
         return f4
 
-    
+
     def reset(self):
         self.conv1.reset_parameters()
         self.conv2.reset_parameters()
@@ -237,7 +237,7 @@ class NetSkip(nn.Module):
         obj_val.backward()
         optimizer.step()
         return obj_val.item(),prediction
-    
+
     def test(self, inputs,targets, loss, epoch):
         '''
         INPUTS: inuts ---> data to test with
@@ -247,9 +247,9 @@ class NetSkip(nn.Module):
 
         OUTPUTS: latest computed loss from test data
                   prediction --> array of predicted digits
-        
-        
-        
+
+
+
         '''
 
 
@@ -260,4 +260,3 @@ class NetSkip(nn.Module):
             prediction = self.forward(inputs)
             cross_val= loss(prediction, targets)
         return cross_val.item(),prediction
- 
