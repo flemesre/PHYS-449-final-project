@@ -1,5 +1,13 @@
 # Objects
 
+## norm_halo_mass
+`norm_halo_mass` (normalized halo masses) is obtained as follows:
+- consider the particles whose mass falls within the mass range
+- take the log (in base 10) of the masses
+- rescale to [-1,1]
+
+`norm_halo_mass` is the second item returned by `data_processing(sims)`. Since the argument is `sims`, all sims are added to `norm_halo_mass`.
+
 ## sims
 `sims` is the list of all simulations considered by the code (including the testing sim).
 
@@ -7,6 +15,9 @@
 Not all particles in the simulation fall within the mass range. For those that do, we assign a new index to them. `sim_list` maps the new index to the original index in the raw data.
 
 `sim_list` is the first item returned by `get_sim_list(sims)`. Since the argument is `sims`, all sims are added to `sim_list`.
+
+## train_num_particles
+`train_num_particles` is the second item returned by `get_sim_list(sims)`. Since the argument is `sims`, all sims are added to `sim_list`.
 
 # Functions
 
