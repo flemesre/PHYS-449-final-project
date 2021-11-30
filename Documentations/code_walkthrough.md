@@ -1,4 +1,14 @@
+# Objects
 
+## sims
+`sims` is the list of all simulations considered by the code (including the testing sim).
+
+## sim_list
+Not all particles in the simulation fall within the mass range. For those that do, we assign a new index to them. `sim_list` maps the new index to the original index in the raw data.
+
+`sim_list` is the first item returned by `get_sim_list(sims)`. Since the argument is `sims`, all sims are added to `sim_list`.
+
+# Functions
 
 ## which_sim
 The dataloader treats the data as a 1D array. It is given the total length of this array. It then draws indices from this array randomly, 
