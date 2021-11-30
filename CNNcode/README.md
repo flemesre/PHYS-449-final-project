@@ -3,7 +3,7 @@
 - download `load_data_from_pynbody2.py` and `dataloader_2.py`
 - put all of these in the same folder
 
-While the code can probably support more simulations, I have only tested it on the first two.
+Or download all files and use `all_sims.py`
 
 ## 2
 run `load_data_from_pynbod2y.py` to convert pynbody files into things numpy/pytorch can recognize
