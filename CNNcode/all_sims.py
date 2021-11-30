@@ -299,7 +299,7 @@ class CNN_skip(nn.Module):
 
         self.beta = 0.03  # Leaky ReLU coeff
 
-        self.gamma = torch.tensor(1.0)  # gamma in Cauchy loss
+        self.gamma = nn.Parameter(torch.tensor(1.0))  # gamma in Cauchy loss
 
         # self.conv_layers = nn.Sequential( 864+2-3/1 +1 = 863+1
         # 1st conv layer --- (864,864,864,1) ---> (864,864,864,32)
@@ -524,6 +524,9 @@ if __name__ == '__main__':
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
             break
 
+    if save_model:
+        torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
+        
     plt.plot(graph_x_axis, train_loss_history,label='training loss')
     plt.plot(graph_x_axis, test_loss_history,label='testing loss')
     plt.title('CNN training performance')
