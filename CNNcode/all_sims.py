@@ -136,23 +136,23 @@ def compute_subbox(i0, j0, k0, input_matrix):
 
 def which_sim(num):
     for K in range(len(training_list)):
-        if num < train_num_particles[K]:
+        if num < train_num_particles[sims.index(training_list[K])]:
             return K, num
         else:
-            num -= train_num_particles[K]
+            num -= train_num_particles[sims.index(training_list[K])]
 
 
 class TrainingDataset(torch.utils.data.Dataset):
 
     def __init__(self):
         self.output_data = []
-        for idx in training_list:
-            self.output_data.append(norm_halo_mass[training_list.index(idx)].to(device0, dtype=torch.float32))
+        for training_sim in training_list:
+            self.output_data.append(norm_halo_mass[sims.index(training_sim)].to(device0, dtype=torch.float32))
 
     def __len__(self):
         training_num = 0
-        for idx in training_list:
-            training_num += train_num_particles[training_list.index(idx)]
+        for training_sim in training_list:
+            training_num += train_num_particles[sims.index(training_sim)]
         return training_num
 
     def __getitem__(self, raw_idx):
@@ -161,7 +161,7 @@ class TrainingDataset(torch.utils.data.Dataset):
         sim_idx, idx = which_sim(raw_idx)
         sim_num = training_list[sim_idx]
         if debug_dataloader:
-            print(f"from simulation {sim_num}")
+            print(f"from simulation {sim_num}   sims index = {sims.index(sim_num)}   index = {idx}")
         J = sim_list[sims.index(sim_num)][idx]
 
         i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
@@ -169,7 +169,8 @@ class TrainingDataset(torch.utils.data.Dataset):
                  j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
 
         input_data = subbox.to(device0, dtype=torch.float32)
-        return torch.unsqueeze(input_data, 0), self.output_data[sims.index(sim_num)][idx]
+        # output data is a list of training sims
+        return torch.unsqueeze(input_data, 0), self.output_data[sim_idx][idx]
 
 
 class TestingDataset(torch.utils.data.Dataset):
@@ -437,10 +438,13 @@ if __name__ == '__main__':
     i, j, k = np.unravel_index(iord, (sim_length, sim_length, sim_length))
     coords = np.column_stack((i, j, k))
 
-    sims = [1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-    training_list = [4]
-    test_sim = 5  # which simulation is used for testing
-    debug_dataloader = True
+    sims = [1,2] # [1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+    training_list = [1] # [2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+    test_sim = 2  # which simulation is used for testing
+
+    debug_dataloader = False
+    load_model = False
+    plot_with_plotly = False
 
     halo_mass = get_halo_mass(sims)
     sim_list, train_num_particles = get_sim_list(sims)
