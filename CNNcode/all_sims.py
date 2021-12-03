@@ -1,6 +1,7 @@
 import numpy as np
 import torch, random, time
 import torch.nn as nn
+from torch.nn.modules.activation import LeakyReLU
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import argparse, sys
@@ -399,6 +400,151 @@ class CNN_skip(nn.Module):
         # print(f"fc input shape = {fc_input.shape}")
         return self.fc_layers(fc_input)
 
+
+class VAE(nn.Module):
+    def __init__(self,):
+        super(CNN, self.D_latent).__init__()
+        self.conv_layer1_kernels = 32
+        self.conv_layer2_kernels = 32
+        self.conv_layer3_kernels = 64
+        self.conv_layer4_kernels = 128
+        self.conv_layer5_kernels = 128
+        self.conv_layer6_kernels = 128
+
+        self.fc_layer1_neurons = 256
+        self.fc_layer2_neurons = 128
+
+        self.fc_layer3_neurons = self.D_latent
+
+        self.dfc_layer1_neurons = 128
+        self.dfc_layer2_neurons =256
+        self.dfc_layer3_neurons = 1024
+        
+        self.deconv_layer1_kernels = 128
+        self.deconv_layer2_kernels =128
+        self.deconv_layer3_kernels =128
+        self.deconv_layer4_kernels=64
+        self.deconv_layer5_kernels =32
+        self.deconv_layer6_kernels=32
+
+
+
+        self.beta = 0.03 # Leaky ReLU coeff
+
+        self.gamma = nn.Parameter(torch.tensor(1.0)) # gamma in Cauchy loss # gamma in Cauchy loss
+
+        self.enc_conv_layers = nn.Sequential(
+            # 1st conv layer
+            nn.Conv3d(1,self.conv_layer1_kernels,(3,3,3),
+                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
+            nn.LeakyReLU(negative_slope=self.beta),
+
+            # 2nd conv layer
+            nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxPool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+
+            # 3rd conv layer
+            nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxPool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+
+            # 4th conv layer
+            nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxPool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+
+            # 5th conv layer
+            nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxPool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+
+            # 6th conv layer
+            nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxPool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+        )
+
+        self.enc_fc_layers = nn.Sequential(
+            # 1st fc layer
+            nn.Linear(1024, self.fc_layer1_neurons),
+            nn.LeakyReLU(negative_slope=self.beta),
+
+            # 2nd fc layer
+            nn.Linear(self.fc_layer1_neurons, self.fc_layer2_neurons),
+            nn.LeakyReLU(negative_slope=self.beta),
+        )
+            # 3rd fc layer
+        self.latent = nn.Linear(self.fc_layer2_neurons, self.fc_layer3_neurons)
+        
+        self.decoder_fc_layers =nn.Sequential(
+            # 1st fc layer
+            nn.Linear(self.fc_layer3_neurons,self.dfc_layer1_neurons),
+            nn.LeakyReLU(negative_slope =self.beta),
+            # 2nd fc layer 
+            nn.Linear(self.dfc_layer1_neurons,self.dfc_layer2_neurons),
+            nn.LeakyReLU(negative_slope =self.beta),
+            # 3rd fc layer
+            nn.Linear(self.dfc_layer2_neurons,self.dfc_layer3_neurons),
+            nn.LeakyReLU(negative_slope=self.beta)
+        )
+
+        self.decoder_conv_layers = nn.Sequential(
+            # FIRST DECON LAYER
+            nn.ConvTranspose3d(1,self.deconv_layer1_kernels,(3,3,3),
+                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxUnpool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+            # SECOND DECON LAYER
+            nn.ConvTranspose3d(self.deconv_layer1_kernels,self.deconv_layer2_kernels,(3,3,3),
+                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxUnpool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+            # THIRD DECON LAYER
+            nn.ConvTranspose3d(self.deconv_layer2_kernels,self.deconv_layer3_kernels,(3,3,3),
+                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxUnpool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+            # FOURTH DECON LAYER
+            nn.ConvTranspose3d(self.deconv_layer3_kernels,self.deconv_layer4_kernels,(3,3,3),
+                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxUnpool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+            # FIFTH DECON LAYER
+            nn.ConvTranspose3d(self.deconv_layer4_kernels,self.deconv_layer5_kernels,(3,3,3),
+                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
+            nn.MaxUnpool3d((2, 2, 2)),
+            nn.LeakyReLU(negative_slope=self.beta),
+            # SIXTH DECON
+            nn.ConvTranspose3d(self.deconv_layer5_kernels,self.deconv_layer6_kernels,(3,3,3),
+                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
+            nn.LeakyReLU(negative_slope=self.beta),
+        )
+
+        # Xavier initialization
+        def initialize_weights(N_net):
+            if isinstance(N_net, nn.Conv3d) or isinstance(N_net, nn.Linear):
+                nn.init.xavier_uniform_(N_net.weight)
+
+        self.conv_layers.apply(initialize_weights)
+        self.fc_layers.apply(initialize_weights)
+
+
+    def forward(self, initial_den_field):
+        conv_enc_output = self.enc_conv_layers(initial_den_field)
+        # print(f"conv output shape = {conv_output.shape}")
+        fc_enc_input = torch.flatten(conv_enc_output, start_dim=1)
+
+        latent_layer = ()
+
+
+        # print(f"fc input shape = {fc_input.shape}")
+        return self.enc_fc_layers(fc_enc_input)
 
 def custom_loss_fcn(MODEL, tensor1, tensor2):
     thing_inside_ln = 1+((tensor1-tensor2)/MODEL.gamma)**2
