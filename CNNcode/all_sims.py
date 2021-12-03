@@ -409,18 +409,22 @@ class VAE(torch.nn.Module):
         # Encoder layers
         self.encoder = nn.Sequential().to(self.device)
         self.encoder.add_module("e_dropout", nn.Dropout(0.2))
-        self.encoder.add_module("e_conv1", nn.Conv3d(1, 8, (3, 3, 3), stride=2, padding=1))
+        self.encoder.add_module("e_conv1", nn.Conv3d(1, 32, (3, 3, 3), stride=1, padding=1))
         self.encoder.add_module("e_activation1", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv2", nn.Conv3d(8, 16, (3, 3, 3), stride=2, padding=1))
+        self.encoder.add_module("e_conv2", nn.Conv3d(32, 32, (3, 3, 3), stride=1, padding=1))
         self.encoder.add_module("e_activation2", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv3", nn.Conv3d(16, 32, (3, 3, 3), stride=2, padding=1))
+        self.encoder.add_module("e_conv3", nn.Conv3d(32, 64, (3, 3, 3), stride=1, padding=1))
         self.encoder.add_module("e_activation3", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv4", nn.Conv3d(32, 64, (3, 3, 3), stride=2, padding=1))
+        self.encoder.add_module("e_conv4", nn.Conv3d(64, 128, (3, 3, 3), stride=1, padding=1))
         self.encoder.add_module("e_activation4", nn.LeakyReLU(negative_slope=self.beta))
+        self.encoder.add_module("e_conv5", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1))
+        self.encoder.add_module("e_activation5", nn.LeakyReLU(negative_slope=self.beta))
+        self.encoder.add_module("e_conv6", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1))
+        self.encoder.add_module("e_activation6", nn.LeakyReLU(negative_slope=self.beta))
         self.encoder.add_module("e_flatten", nn.Flatten())
 
         # Latent layers
-        self.fc1 = nn.Linear(64, 128).to(self.device)
+        self.fc1 = nn.Linear(128, 128).to(self.device)
         self.fc1_1 = nn.Linear(128, n_latent).to(self.device)  # mu
         self.fc1_2 = nn.Linear(128, n_latent).to(self.device)  # sigma
         self.fc2 = nn.Linear(n_latent, 196).to(self.device)
@@ -430,12 +434,16 @@ class VAE(torch.nn.Module):
         self.decoder.add_module("d_unflatten", nn.Unflatten(dim=1, unflattened_size=(196, 1, 1)))
         self.decoder.add_module("d_conv1", nn.ConvTranspose3d(196, 128, (4, 4, 4), stride=1, padding=0))
         self.decoder.add_module("d_activation1", nn.LeakyReLU(negative_slope=self.beta))
-        self.decoder.add_module("d_conv2", nn.ConvTranspose3d(128, 64, (4, 4, 4), stride=2, padding=0))
+        self.decoder.add_module("d_conv2", nn.ConvTranspose3d(128, 128, (4, 4, 4), stride=2, padding=0))
         self.decoder.add_module("d_activation2", nn.LeakyReLU(negative_slope=self.beta))
-        self.decoder.add_module("d_conv3", nn.ConvTranspose3d(64, 32, (4, 4, 4), stride=1, padding=0))
+        self.decoder.add_module("d_conv3", nn.ConvTranspose3d(128, 64, (4, 4, 4), stride=1, padding=0))
         self.decoder.add_module("d_activation3", nn.LeakyReLU(negative_slope=self.beta))
-        self.decoder.add_module("d_conv4", nn.ConvTranspose3d(32, 1, (2, 2, 2), stride=1, padding=0))
+        self.decoder.add_module("d_conv4", nn.ConvTranspose3d(64, 32, (2, 2, 2), stride=1, padding=0))
         self.decoder.add_module("d_activation4", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_conv5", nn.ConvTranspose3d(32, 32, (2, 2, 2), stride=1, padding=0))
+        self.decoder.add_module("d_activation5", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_conv6", nn.ConvTranspose3d(32, 1, (2, 2, 2), stride=1, padding=0))
+        self.decoder.add_module("d_activation6", nn.LeakyReLU(negative_slope=self.beta))
 
         # Xavier initialization for NN weights
         def initialize_weights(N_net):
@@ -459,7 +467,8 @@ class VAE(torch.nn.Module):
     # decoder function, from latent space to expected output format
     def decode(self, z):
         z = self.decoder(self.fc2(z.to(self.device))).to(self.device)
-        return z.reshape(z.size(0), 1, 14, 14)  # reshape to output size, needs to be rewritten
+        # return z.reshape(z.size(0), 1, 14, 14)  # reshape to output size, needs to be rewritten
+        return nn.Flatten(z)  # reshape to output size, needs to be rewritten
 
     # reparametrisation trick from lecture
     def reparametrise(self, mean, logvariance):
