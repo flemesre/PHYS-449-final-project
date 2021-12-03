@@ -1,7 +1,6 @@
 import numpy as np
 import torch, random, time
 import torch.nn as nn
-from torch.nn.modules.activation import LeakyReLU
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import argparse, sys
@@ -401,150 +400,78 @@ class CNN_skip(nn.Module):
         return self.fc_layers(fc_input)
 
 
-class VAE(nn.Module):
-    def __init__(self,):
-        super(CNN, self.D_latent).__init__()
-        self.conv_layer1_kernels = 32
-        self.conv_layer2_kernels = 32
-        self.conv_layer3_kernels = 64
-        self.conv_layer4_kernels = 128
-        self.conv_layer5_kernels = 128
-        self.conv_layer6_kernels = 128
+class VAE(torch.nn.Module):
+    def __init__(self, n_latent, device):
+        super(VAE, self).__init__()
+        self.device = device
+        self.beta = 0.03  # Leaky ReLU coefficient
 
-        self.fc_layer1_neurons = 256
-        self.fc_layer2_neurons = 128
+        # Encoder layers
+        self.encoder = nn.Sequential().to(self.device)
+        self.encoder.add_module("e_dropout", nn.Dropout(0.2))
+        self.encoder.add_module("e_conv1", nn.Conv3d(1, 8, (3, 3, 3), stride=2, padding=1))
+        self.encoder.add_module("e_activation1", nn.LeakyReLU(negative_slope=self.beta))
+        self.encoder.add_module("e_conv2", nn.Conv3d(8, 16, (3, 3, 3), stride=2, padding=1))
+        self.encoder.add_module("e_activation2", nn.LeakyReLU(negative_slope=self.beta))
+        self.encoder.add_module("e_conv3", nn.Conv3d(16, 32, (3, 3, 3), stride=2, padding=1))
+        self.encoder.add_module("e_activation3", nn.LeakyReLU(negative_slope=self.beta))
+        self.encoder.add_module("e_conv4", nn.Conv3d(32, 64, (3, 3, 3), stride=2, padding=1))
+        self.encoder.add_module("e_activation4", nn.LeakyReLU(negative_slope=self.beta))
+        self.encoder.add_module("e_flatten", nn.Flatten())
 
-        self.fc_layer3_neurons = self.D_latent
+        # Latent layers
+        self.fc1 = nn.Linear(64, 128).to(self.device)
+        self.fc1_1 = nn.Linear(128, n_latent).to(self.device)  # mu
+        self.fc1_2 = nn.Linear(128, n_latent).to(self.device)  # sigma
+        self.fc2 = nn.Linear(n_latent, 196).to(self.device)
 
-        self.dfc_layer1_neurons = 128
-        self.dfc_layer2_neurons =256
-        self.dfc_layer3_neurons = 1024
-        
-        self.deconv_layer1_kernels = 128
-        self.deconv_layer2_kernels =128
-        self.deconv_layer3_kernels =128
-        self.deconv_layer4_kernels=64
-        self.deconv_layer5_kernels =32
-        self.deconv_layer6_kernels=32
+        # Decoder layers
+        self.decoder = nn.Sequential().to(self.device)
+        self.decoder.add_module("d_unflatten", nn.Unflatten(dim=1, unflattened_size=(196, 1, 1)))
+        self.decoder.add_module("d_conv1", nn.ConvTranspose3d(196, 128, (4, 4, 4), stride=1, padding=0))
+        self.decoder.add_module("d_activation1", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_conv2", nn.ConvTranspose3d(128, 64, (4, 4, 4), stride=2, padding=0))
+        self.decoder.add_module("d_activation2", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_conv3", nn.ConvTranspose3d(64, 32, (4, 4, 4), stride=1, padding=0))
+        self.decoder.add_module("d_activation3", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_conv4", nn.ConvTranspose3d(32, 1, (2, 2, 2), stride=1, padding=0))
+        self.decoder.add_module("d_activation4", nn.LeakyReLU(negative_slope=self.beta))
 
-
-
-        self.beta = 0.03 # Leaky ReLU coeff
-
-        self.gamma = nn.Parameter(torch.tensor(1.0)) # gamma in Cauchy loss # gamma in Cauchy loss
-
-        self.enc_conv_layers = nn.Sequential(
-            # 1st conv layer
-            nn.Conv3d(1,self.conv_layer1_kernels,(3,3,3),
-                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
-            nn.LeakyReLU(negative_slope=self.beta),
-
-            # 2nd conv layer
-            nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxPool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-
-            # 3rd conv layer
-            nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxPool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-
-            # 4th conv layer
-            nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxPool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-
-            # 5th conv layer
-            nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxPool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-
-            # 6th conv layer
-            nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxPool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-        )
-
-        self.enc_fc_layers = nn.Sequential(
-            # 1st fc layer
-            nn.Linear(1024, self.fc_layer1_neurons),
-            nn.LeakyReLU(negative_slope=self.beta),
-
-            # 2nd fc layer
-            nn.Linear(self.fc_layer1_neurons, self.fc_layer2_neurons),
-            nn.LeakyReLU(negative_slope=self.beta),
-        )
-            # 3rd fc layer
-        self.latent = nn.Linear(self.fc_layer2_neurons, self.fc_layer3_neurons)
-        
-        self.decoder_fc_layers =nn.Sequential(
-            # 1st fc layer
-            nn.Linear(self.fc_layer3_neurons,self.dfc_layer1_neurons),
-            nn.LeakyReLU(negative_slope =self.beta),
-            # 2nd fc layer 
-            nn.Linear(self.dfc_layer1_neurons,self.dfc_layer2_neurons),
-            nn.LeakyReLU(negative_slope =self.beta),
-            # 3rd fc layer
-            nn.Linear(self.dfc_layer2_neurons,self.dfc_layer3_neurons),
-            nn.LeakyReLU(negative_slope=self.beta)
-        )
-
-        self.decoder_conv_layers = nn.Sequential(
-            # FIRST DECON LAYER
-            nn.ConvTranspose3d(1,self.deconv_layer1_kernels,(3,3,3),
-                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxUnpool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-            # SECOND DECON LAYER
-            nn.ConvTranspose3d(self.deconv_layer1_kernels,self.deconv_layer2_kernels,(3,3,3),
-                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxUnpool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-            # THIRD DECON LAYER
-            nn.ConvTranspose3d(self.deconv_layer2_kernels,self.deconv_layer3_kernels,(3,3,3),
-                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxUnpool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-            # FOURTH DECON LAYER
-            nn.ConvTranspose3d(self.deconv_layer3_kernels,self.deconv_layer4_kernels,(3,3,3),
-                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxUnpool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-            # FIFTH DECON LAYER
-            nn.ConvTranspose3d(self.deconv_layer4_kernels,self.deconv_layer5_kernels,(3,3,3),
-                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
-            nn.MaxUnpool3d((2, 2, 2)),
-            nn.LeakyReLU(negative_slope=self.beta),
-            # SIXTH DECON
-            nn.ConvTranspose3d(self.deconv_layer5_kernels,self.deconv_layer6_kernels,(3,3,3),
-                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
-            nn.LeakyReLU(negative_slope=self.beta),
-        )
-
-        # Xavier initialization
+        # Xavier initialization for NN weights
         def initialize_weights(N_net):
             if isinstance(N_net, nn.Conv3d) or isinstance(N_net, nn.Linear):
                 nn.init.xavier_uniform_(N_net.weight)
 
-        self.conv_layers.apply(initialize_weights)
-        self.fc_layers.apply(initialize_weights)
+        self.encoder.apply(initialize_weights)
+        self.fc1.apply(initialize_weights)
+        self.fc1_1.apply(initialize_weights)
+        self.fc1_2.apply(initialize_weights)
+        self.fc2.apply(initialize_weights)
+        self.decoder.apply(initialize_weights)
 
+    # encoder function, mnist data to compressed latent space (mu and sigma)
+    def encode(self, x):
+        x = self.encoder(x.to(self.device)).to(self.device)
+        mu = self.fc1_1(self.fc1(x.to(self.device))).to(self.device)
+        sigma = self.fc1_2(self.fc1(x.to(self.device))).to(self.device)
+        return mu, sigma
 
-    def forward(self, initial_den_field):
-        conv_enc_output = self.enc_conv_layers(initial_den_field)
-        # print(f"conv output shape = {conv_output.shape}")
-        fc_enc_input = torch.flatten(conv_enc_output, start_dim=1)
+    # decoder function, from latent space to expected output format
+    def decode(self, z):
+        z = self.decoder(self.fc2(z.to(self.device))).to(self.device)
+        return z.reshape(z.size(0), 1, 14, 14)  # reshape to output size, needs to be rewritten
 
-        latent_layer = ()
+    # reparametrisation trick from lecture
+    def reparametrise(self, mean, logvariance):
+        sigma = torch.exp(logvariance / 2)
+        epsilon = torch.randn_like(sigma)
+        return mean + sigma * epsilon
 
+    def forward(self, x):
+        mu, logvariance = self.encode(x.to(self.device))
+        x = self.reparametrise(mu, logvariance).to(self.device)
+        return self.decode(x).to(self.device), mu, logvariance
 
-        # print(f"fc input shape = {fc_input.shape}")
-        return self.enc_fc_layers(fc_enc_input)
 
 def custom_loss_fcn(MODEL, tensor1, tensor2):
     thing_inside_ln = 1+((tensor1-tensor2)/MODEL.gamma)**2
