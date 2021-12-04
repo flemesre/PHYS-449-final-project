@@ -498,7 +498,7 @@ class VAE(torch.nn.Module):
         x = self.reparametrise(mu, logvariance).to(self.device)
         return self.decode(x).to(self.device), mu, logvariance
 
-def super_exp(a,b,tensor1):
+def super_exp(tensor1):
     ''' INPUTS:
         -- tensor1 -- tensor to raise to e^e^x, in our case, mass predictions
 
@@ -524,8 +524,6 @@ def Heaviside_regularizer(input_loss,super_exp,tensor2):
             -- input_loss -- loss computed by equation 5 of original paper. Tensor.
             -- super_exp  -- a function that computes a super-exponential function
             -- tensor2  a tensor of predicted masses, parameterized between -1 and 1.
-            -- a - the lower base of the super-exponent, a number
-            -- b - the upper base of the super-exponent, a number
 
         Output:
 
@@ -533,8 +531,9 @@ def Heaviside_regularizer(input_loss,super_exp,tensor2):
             added, a tensor.
     
     '''
-    first_term = input_loss*torch.heavside((torch.abs(tensor2)+1))
-    second_term =super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1)
+    zeros = torch.zeros_like(tensor2)
+    first_term = input_loss*torch.heaviside((torch.abs(tensor2)+1),zeros)
+    second_term =super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1,zeros)
     avg_term = torch.mean(first_term+second_term)
 
     return avg_term # L-pred
@@ -603,7 +602,7 @@ if __name__ == '__main__':
         print(model.gamma)
         sys.exit()
     # initial NN and optimizer
-    model = VAE(10,device)#.to(device)#CNN_skip().to(device)
+    model = CNN().to(device)#VAE(10,device)#.to(device)#CNN_skip().to(device)
     # loss_fcn = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, amsgrad=True)
 
@@ -639,13 +638,13 @@ if __name__ == '__main__':
                 # print(torch.unsqueeze(_y, 1).shape)
                 # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
                 test_loss = custom_loss_fcn(model,torch.unsqueeze(_y, 1).to(device),model(_x.to(device)))
-
+                updated_test_loss= Heaviside_regularizer(test_loss,super_exp,model(_x.to(device)))
             train_loss_history.append(loss.detach().cpu())
             test_loss_history.append(test_loss.detach().cpu())
             gamma_history.append(model.gamma.detach().cpu())
 
             end = time.time()
-            print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
+            print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss} updated train loss = {updated_loss} updated test loss = {updated_test_loss} train time = {train_time}  test time = {end - start}")
 
             start = time.time()
             # print(_x)
