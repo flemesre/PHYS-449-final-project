@@ -498,6 +498,7 @@ class VAE(torch.nn.Module):
         x = self.reparametrise(mu, logvariance).to(self.device)
         return self.decode(x).to(self.device), mu, logvariance
 
+
 def super_exp(tensor1):
     ''' INPUTS:
         -- tensor1 -- tensor to raise to e^e^x, in our case, mass predictions
@@ -511,6 +512,7 @@ def super_exp(tensor1):
 
     return super_exp
 
+
 def custom_loss_fcn(MODEL, tensor1, tensor2):
     thing_inside_ln = 1+((tensor1-tensor2)/MODEL.gamma)**2
     other_thing = torch.atan((max(tensor1) - tensor2)/MODEL.gamma) - torch.atan((min(tensor1) - tensor2)/MODEL.gamma)
@@ -518,7 +520,8 @@ def custom_loss_fcn(MODEL, tensor1, tensor2):
  
     return torch.mean(before_avging)
 
-def Heaviside_regularizer(input_loss,super_exp,tensor2):
+
+def Heaviside_regularizer(input_loss, super_exp, tensor2):
     '''
         Input:
             -- input_loss -- loss computed by equation 5 of original paper. Tensor.
@@ -533,10 +536,10 @@ def Heaviside_regularizer(input_loss,super_exp,tensor2):
     '''
     zeros = torch.zeros_like(tensor2)
     first_term = input_loss*torch.heaviside((torch.abs(tensor2)+1),zeros)
-    second_term =super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1,zeros)
+    second_term = super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1,zeros)
     avg_term = torch.mean(first_term+second_term)
 
-    return avg_term # L-pred
+    return avg_term  # L-pred
 
 
 if __name__ == '__main__':
@@ -569,8 +572,8 @@ if __name__ == '__main__':
     i, j, k = np.unravel_index(iord, (sim_length, sim_length, sim_length))
     coords = np.column_stack((i, j, k))
 
-    sims = [1,2] # [1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-    training_list = [1] # [2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+    sims = [1, 2]  # [1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+    training_list = [1]  # [2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
     test_sim = 2  # which simulation is used for testing
 
     debug_dataloader = False
@@ -602,7 +605,7 @@ if __name__ == '__main__':
         print(model.gamma)
         sys.exit()
     # initial NN and optimizer
-    model = CNN().to(device)#VAE(10,device)#.to(device)#CNN_skip().to(device)
+    model = CNN().to(device)  # VAE(10,device)#.to(device)#CNN_skip().to(device)
     # loss_fcn = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, amsgrad=True)
 
@@ -613,6 +616,7 @@ if __name__ == '__main__':
     graph_x_axis = np.append(np.arange(0, num_iterations-1, 10), num_iterations-1)
     # np.linspace(0,num_iterations-1,(num_iterations-1)//10+1)
 
+    # training loop
     start = time.time()
     for batch, (_den_field, _true_mass) in enumerate(train_dataloader):
         torch.cuda.empty_cache()
@@ -621,38 +625,42 @@ if __name__ == '__main__':
         # print(_true_mass.shape)
         # print(torch.unsqueeze(_true_mass, 1).shape)
         # loss = loss_fcn(predicted_mass, torch.unsqueeze(_true_mass, 1).to(device))
-        loss = custom_loss_fcn(model,torch.unsqueeze(_true_mass, 1).to(device),predicted_mass)
-        updated_loss = Heaviside_regularizer(loss,super_exp,predicted_mass)
+        loss = custom_loss_fcn(model, torch.unsqueeze(_true_mass, 1).to(device), predicted_mass)
+        updated_loss = Heaviside_regularizer(loss, super_exp, predicted_mass)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        if batch % 10 == 0:
-            end = time.time()
-            train_time = end - start
-            start = time.time()
-            # print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}   time = {end-start}")
-            for test_batch, (_x, _y) in enumerate(test_dataloader):
-                # print(_x.shape)
-                # print(_y.shape)
-                # print(torch.unsqueeze(_y, 1).shape)
-                # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
-                test_loss = custom_loss_fcn(model,torch.unsqueeze(_y, 1).to(device),model(_x.to(device)))
-                updated_test_loss= Heaviside_regularizer(test_loss,super_exp,model(_x.to(device)))
-            train_loss_history.append(loss.detach().cpu())
-            test_loss_history.append(test_loss.detach().cpu())
-            gamma_history.append(model.gamma.detach().cpu())
+        with torch.no_grad():
+            if batch % 10 == 0:
+                end = time.time()
+                train_time = end - start
+                start = time.time()
+                # print(f"batch = {batch}   _x shape = {_x.shape}   _y shape = {_y.shape}   time = {end-start}")
+                for test_batch, (_x, _y) in enumerate(test_dataloader):
+                    # print(_x.shape)
+                    # print(_y.shape)
+                    # print(torch.unsqueeze(_y, 1).shape)
+                    # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
+                    test_loss = custom_loss_fcn(model, torch.unsqueeze(_y, 1).to(device), model(_x.to(device)))
+                    updated_test_loss = Heaviside_regularizer(test_loss,super_exp,model(_x.to(device)))
+                train_loss_history.append(loss.detach().cpu())
+                test_loss_history.append(test_loss.detach().cpu())
+                gamma_history.append(model.gamma.detach().cpu())
 
-            end = time.time()
-            print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss} updated train loss = {updated_loss} updated test loss = {updated_test_loss} train time = {train_time}  test time = {end - start}")
+                end = time.time()
+                print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss} "
+                      f"updated train loss = {updated_loss} updated test loss = {updated_test_loss} "
+                      f"train time = {train_time}  test time = {end - start}")
 
-            start = time.time()
-            # print(_x)
-            # print(_y)
+                start = time.time()
+                # print(_x)
+                # print(_y)
 
         if batch == num_iterations-1:
             end = time.time()
-            print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  test time = {end - start}")
+            print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  "
+                  f"test time = {end - start}")
             break
 
     if save_model:
