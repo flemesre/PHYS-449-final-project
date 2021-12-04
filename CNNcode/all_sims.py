@@ -509,7 +509,7 @@ def super_exp(tensor1):
         -- super_exp -- tensor raised to e^e^x per the paper
     '''
 
-    exp_part =torch.exp(tensor1)
+    exp_part = torch.exp(tensor1)
     super_exp = torch.exp(exp_part)
 
     return super_exp
@@ -521,6 +521,7 @@ def custom_loss_fcn(MODEL, tensor1, tensor2):
     before_avging = torch.log(MODEL.gamma) + torch.log(thing_inside_ln) + torch.log(other_thing)
 
     return torch.mean(before_avging)
+
 
 def regularizer(weights, alpha):
     '''
@@ -556,7 +557,8 @@ def regularizer(weights, alpha):
 
     return alpha * L_reg
 
-def Heaviside_regularizer(input_loss,super_exp,tensor2):
+
+def Heaviside_regularizer(input_loss, super_exp, tensor2):
     '''
         Input:
             -- input_loss -- loss computed by equation 5 of original paper. Tensor.
@@ -569,9 +571,10 @@ def Heaviside_regularizer(input_loss,super_exp,tensor2):
             added, a tensor.
 
     '''
+
     zeros = torch.zeros_like(tensor2)
-    first_term = input_loss*torch.heaviside((torch.abs(tensor2)+1),zeros)
-    second_term = super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1,zeros)
+    first_term = input_loss*torch.heaviside((torch.abs(tensor2)+1), zeros)
+    second_term = super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1, zeros)
     avg_term = torch.mean(first_term+second_term)
 
     return avg_term  # L-pred
