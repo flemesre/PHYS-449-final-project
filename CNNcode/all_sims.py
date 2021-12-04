@@ -409,17 +409,23 @@ class VAE(torch.nn.Module):
         # Encoder layers
         self.encoder = nn.Sequential().to(self.device)
         self.encoder.add_module("e_dropout", nn.Dropout(0.2))
-        self.encoder.add_module("e_conv1", nn.Conv3d(1, 32, (3, 3, 3), stride=1, padding=1))
+        print(self.encoder)
+        self.encoder.add_module("e_conv1", nn.Conv3d(1, 32, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
         self.encoder.add_module("e_activation1", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv2", nn.Conv3d(32, 32, (3, 3, 3), stride=1, padding=1))
+        self.encoder.add_module("e_conv2", nn.Conv3d(32, 32, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
+        self.encoder.add_module("pool1",nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation2", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv3", nn.Conv3d(32, 64, (3, 3, 3), stride=1, padding=1))
+        self.encoder.add_module("e_conv3", nn.Conv3d(32, 64, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
+        self.encoder.add_module("pool2",nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation3", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv4", nn.Conv3d(64, 128, (3, 3, 3), stride=1, padding=1))
+        self.encoder.add_module("e_conv4", nn.Conv3d(64, 128, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
+        self.encoder.add_module("pool3",nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation4", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv5", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1))
+        self.encoder.add_module("e_conv5", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
+        self.encoder.add_module("pool4",nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation5", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv6", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1))
+        self.encoder.add_module("e_conv6", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
+        self.encoder.add_module("pool5",nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation6", nn.LeakyReLU(negative_slope=self.beta))
         self.encoder.add_module("e_flatten", nn.Flatten())
 
@@ -433,15 +439,21 @@ class VAE(torch.nn.Module):
         self.decoder = nn.Sequential().to(self.device)
         self.decoder.add_module("d_unflatten", nn.Unflatten(dim=1, unflattened_size=(196, 1, 1)))
         self.decoder.add_module("d_conv1", nn.ConvTranspose3d(196, 128, (4, 4, 4), stride=1, padding=0))
+        #self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
         self.decoder.add_module("d_activation1", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
         self.decoder.add_module("d_conv2", nn.ConvTranspose3d(128, 128, (4, 4, 4), stride=2, padding=0))
         self.decoder.add_module("d_activation2", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
         self.decoder.add_module("d_conv3", nn.ConvTranspose3d(128, 64, (4, 4, 4), stride=1, padding=0))
         self.decoder.add_module("d_activation3", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
         self.decoder.add_module("d_conv4", nn.ConvTranspose3d(64, 32, (2, 2, 2), stride=1, padding=0))
         self.decoder.add_module("d_activation4", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
         self.decoder.add_module("d_conv5", nn.ConvTranspose3d(32, 32, (2, 2, 2), stride=1, padding=0))
         self.decoder.add_module("d_activation5", nn.LeakyReLU(negative_slope=self.beta))
+        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
         self.decoder.add_module("d_conv6", nn.ConvTranspose3d(32, 1, (2, 2, 2), stride=1, padding=0))
         self.decoder.add_module("d_activation6", nn.LeakyReLU(negative_slope=self.beta))
 
@@ -459,7 +471,9 @@ class VAE(torch.nn.Module):
 
     # encoder function, mnist data to compressed latent space (mu and sigma)
     def encode(self, x):
+        print(x.shape,'INPUT')
         x = self.encoder(x.to(self.device)).to(self.device)
+        print(x.shape)
         mu = self.fc1_1(self.fc1(x.to(self.device))).to(self.device)
         sigma = self.fc1_2(self.fc1(x.to(self.device))).to(self.device)
         return mu, sigma
@@ -477,17 +491,53 @@ class VAE(torch.nn.Module):
         return mean + sigma * epsilon
 
     def forward(self, x):
+        print('FWD step')
+        print(x.shape)
         mu, logvariance = self.encode(x.to(self.device))
+        print(mu.shape)
         x = self.reparametrise(mu, logvariance).to(self.device)
         return self.decode(x).to(self.device), mu, logvariance
 
+def super_exp(a,b,tensor1):
+    ''' INPUTS:
+        -- tensor1 -- tensor to raise to e^e^x, in our case, mass predictions
+
+        OUTPUTS:
+        -- super_exp -- tensor raised to e^e^x per the paper
+    '''
+
+    exp_part =torch.exp(tensor1)
+    super_exp = torch.exp(exp_part)
+
+    return super_exp
 
 def custom_loss_fcn(MODEL, tensor1, tensor2):
     thing_inside_ln = 1+((tensor1-tensor2)/MODEL.gamma)**2
     other_thing = torch.atan((max(tensor1) - tensor2)/MODEL.gamma) - torch.atan((min(tensor1) - tensor2)/MODEL.gamma)
     before_avging = torch.log(MODEL.gamma) + torch.log(thing_inside_ln) + torch.log(other_thing)
-
+ 
     return torch.mean(before_avging)
+
+def Heaviside_regularizer(input_loss,super_exp,tensor2):
+    '''
+        Input:
+            -- input_loss -- loss computed by equation 5 of original paper. Tensor.
+            -- super_exp  -- a function that computes a super-exponential function
+            -- tensor2  a tensor of predicted masses, parameterized between -1 and 1.
+            -- a - the lower base of the super-exponent, a number
+            -- b - the upper base of the super-exponent, a number
+
+        Output:
+
+            --avg_term -- Loss, after the heaviside adjustment terms have been
+            added, a tensor.
+    
+    '''
+    first_term = input_loss*torch.heavside((torch.abs(tensor2)+1))
+    second_term =super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1)
+    avg_term = torch.mean(first_term+second_term)
+
+    return avg_term # L-pred
 
 
 if __name__ == '__main__':
@@ -553,7 +603,7 @@ if __name__ == '__main__':
         print(model.gamma)
         sys.exit()
     # initial NN and optimizer
-    model = CNN_skip().to(device)
+    model = VAE(10,device)#.to(device)#CNN_skip().to(device)
     # loss_fcn = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, amsgrad=True)
 
@@ -573,7 +623,7 @@ if __name__ == '__main__':
         # print(torch.unsqueeze(_true_mass, 1).shape)
         # loss = loss_fcn(predicted_mass, torch.unsqueeze(_true_mass, 1).to(device))
         loss = custom_loss_fcn(model,torch.unsqueeze(_true_mass, 1).to(device),predicted_mass)
-
+        updated_loss = Heaviside_regularizer(loss,super_exp,predicted_mass)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
