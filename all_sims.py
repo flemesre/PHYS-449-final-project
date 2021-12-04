@@ -216,6 +216,8 @@ class CNN(nn.Module):
 
         self.gamma = nn.Parameter(torch.tensor(1.0)) # gamma in Cauchy loss # gamma in Cauchy loss
 
+        self.alpha = nn.Parameter(torch.tensor(1.0)) # Regularization coefficient
+
         self.conv_layers = nn.Sequential(
             # 1st conv layer
             nn.Conv3d(1,self.conv_layer1_kernels,(3,3,3),
@@ -515,8 +517,42 @@ def custom_loss_fcn(MODEL, tensor1, tensor2):
     thing_inside_ln = 1+((tensor1-tensor2)/MODEL.gamma)**2
     other_thing = torch.atan((max(tensor1) - tensor2)/MODEL.gamma) - torch.atan((min(tensor1) - tensor2)/MODEL.gamma)
     before_avging = torch.log(MODEL.gamma) + torch.log(thing_inside_ln) + torch.log(other_thing)
- 
+
     return torch.mean(before_avging)
+
+def regularizer(weights, alpha):
+    '''
+    Computes the natural log of the regularization priors ln[p(w)] as given in equation (7) of the paper. Amounts to L2-regularization over the
+    convolutional layers, L1 and Lasso regularization over the fully-connected layers.
+
+    Inputs:
+        -- weights: the state_dict() for the CNN
+        -- alpha: the regularization parameter
+    Output:
+        -- alpha * L_reg: alpha times the sum of all regularization terms.
+    '''
+    c_layers = [0, 2, 5, 8, 11, 14] # List of indices of the conv layers
+
+    conv_L2 = torch.zeros((1))
+    for i in range(6):
+        c_weight = weights[f"conv_layers.{c_layers[i]}.weight"]
+        conv_L2 += torch.sum(torch.pow(c_weight, 2))
+
+    fc_L1 = torch.zeros((1))
+    for j in range(3):
+        f_weight = weights[f"fc_layers.{2*j}.weight"]
+        fc_L1 += torch.sum(torch.abs(f_weight))
+
+    Lasso = torch.zeros((1))
+    for i in range(3):
+        layer_i = weights[f"fc_layers.{2*i}.weight"]
+        for j in range(layer_i.shape[0]):
+            for k in range(layer_i.shape[1]):
+                Lasso += torch.sum(torch.sqrt(torch.pow(layer_i[j][k], 2)))
+
+    L_reg = conv_L2 + fc_L1 + Lasso
+
+    return alpha * L_reg
 
 def Heaviside_regularizer(input_loss,super_exp,tensor2):
     '''
@@ -529,7 +565,7 @@ def Heaviside_regularizer(input_loss,super_exp,tensor2):
 
             --avg_term -- Loss, after the heaviside adjustment terms have been
             added, a tensor.
-    
+
     '''
     zeros = torch.zeros_like(tensor2)
     first_term = input_loss*torch.heaviside((torch.abs(tensor2)+1),zeros)
@@ -624,7 +660,7 @@ if __name__ == '__main__':
         # print(torch.unsqueeze(_true_mass, 1).shape)
         # loss = loss_fcn(predicted_mass, torch.unsqueeze(_true_mass, 1).to(device))
         loss = custom_loss_fcn(model,torch.unsqueeze(_true_mass, 1).to(device),predicted_mass)
-        updated_loss = Heaviside_regularizer(loss,super_exp,predicted_mass)
+        updated_loss = Heaviside_regularizer(loss,super_exp,predicted_mass) + regularizer(model.state_dict(), model.alpha).item()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -640,7 +676,7 @@ if __name__ == '__main__':
                 # print(torch.unsqueeze(_y, 1).shape)
                 # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
                 test_loss = custom_loss_fcn(model,torch.unsqueeze(_y, 1).to(device),model(_x.to(device)))
-                updated_test_loss= Heaviside_regularizer(test_loss,super_exp,model(_x.to(device)))
+                updated_test_loss= Heaviside_regularizer(test_loss,super_exp,model(_x.to(device))) + regularizer(model.state_dict(), model.alpha).item()
             train_loss_history.append(loss.detach().cpu())
             updated_train_loss_history.append(updated_loss.detach().cpu())
             test_loss_history.append(test_loss.detach().cpu())
@@ -661,7 +697,7 @@ if __name__ == '__main__':
 
     if save_model:
         torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
-        
+
     plt.plot(graph_x_axis, train_loss_history,color ='red',label='training loss')
     plt.plot(graph_x_axis, test_loss_history,color ='blue',label='testing loss',)
     plt.plot(graph_x_axis, updated_train_loss_history,color ='red',linestyle ='dashed',label='updated training loss')
