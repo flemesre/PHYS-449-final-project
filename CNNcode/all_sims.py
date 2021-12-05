@@ -198,8 +198,9 @@ class TestingDataset(torch.utils.data.Dataset):
         input_data = subbox.to(device0, dtype=torch.float32)
         return torch.unsqueeze(input_data, 0), self.output_data[raw_idx]
 
+
 class CNN(nn.Module):
-    '''
+    """
         DESC: CNN seen in the original paper. Architecture is as follows:
 
         CONV1: with a kernel size of 32, stride = 1, zero padding of = 1 in each dimension (1-->32 channels)+LeakyReLU
@@ -210,7 +211,7 @@ class CNN(nn.Module):
         POOL2: 3d Max pool with a filter size of (2,2,2)+LeakyReLU
 
         CONV1: with a kernel size of 128, stride = 1, zero padding of = 1 in each dimension (64-->128 channels)
-        POOL3: 3d Max pool with a filter size of (2,2,2)+LeakyReLU 
+        POOL3: 3d Max pool with a filter size of (2,2,2)+LeakyReLU
 
         CONV1: with a kernel size of 128, stride = 1, zero padding of = 1 in each dimension (128-->128 channels)
         POOL4: 3d Max pool with a filter size of (2,2,2)+LeakyReLU
@@ -222,14 +223,14 @@ class CNN(nn.Module):
         Functions: init --- Creates the convolutional net, with the same parameters as in the original CNN
                    initialize_weights --- initializes the network with weights initaliazed with Xavier weights
                    forward --- Computes the forward step of the network.
-                   
-    '''
+
+    """
     def __init__(self):
-        '''
-            Initializes the conv net with the aforementioned architecture from the paper. Uses Cauchy loss parameter of gamma, which is 
+        """
+            Initializes the conv net with the aforementioned architecture from the paper. Uses Cauchy loss parameter of gamma, which is
             trainable. Constructed with nn.Sequential.
 
-        '''
+        """
 
         super(CNN, self).__init__()
         self.conv_layer1_kernels = 32
@@ -301,24 +302,23 @@ class CNN(nn.Module):
 
         # Xavier initialization
         def initialize_weights(N_net):
-            '''
+            """
             Initializes network weights using the Xavier initialization method
 
-            '''
+            """
             if isinstance(N_net, nn.Conv3d) or isinstance(N_net, nn.Linear):
                 nn.init.xavier_uniform_(N_net.weight)
 
         self.conv_layers.apply(initialize_weights)
         self.fc_layers.apply(initialize_weights)
 
-
     def forward(self, initial_den_field):
-        '''
+        """
             DESCRIPTION:
             INPUTS:
             OUTPUTS:
 
-        '''
+        """
 
         conv_output = self.conv_layers(initial_den_field)
         # print(f"conv output shape = {conv_output.shape}")
@@ -328,7 +328,7 @@ class CNN(nn.Module):
 
 
 class CNN_skip(nn.Module):
-    '''
+    """
         DESC: CNN seen in the original paper, with skip connections implemented at layers: conv1+conv2 --> pool1, conv5+pool3 --> pool4 and
         conv6+pool4 --> pool5
 
@@ -336,20 +336,19 @@ class CNN_skip(nn.Module):
         Functions: init --- Creates the convolutional net, with the same parameters as in the original CNN
                    initialize_weights --- initializes the network with weights initaliazed with Xavier weights
                    forward --- Computes the forward step of the network.
-                   
-    '''
 
+    """
 
     def __init__(self):
-        '''
+        """
         Implements a 3D Convolutional neural network with skip connections with Leaky ReLU and regularization term gamma introduced
         by the paper.
 
         Skip connections at conv1+conv2 --> pool 1, conv5 + pool3 --> pool4, conv6 + pool4 --> pool5
 
         Init also includes a sub-method for initalizing the weights of the network. Has no output, nor input.
-        
-        '''
+
+        """
         super(CNN_skip, self).__init__()
 
         # CONVOLUTIONAL LAYERS
@@ -368,42 +367,35 @@ class CNN_skip(nn.Module):
         self.beta = 0.03  # Leaky ReLU coeff
 
         self.gamma = nn.Parameter(torch.tensor(1.0))  # gamma in Cauchy loss
-
      
         # 1st conv layer --- (,1) ---> (,32)
         self.conv1 = nn.Conv3d(1, self.conv_layer1_kernels, (3, 3, 3), stride=1, padding=(1, 1, 1),
                                padding_mode='zeros')
-
 
         # 2nd conv layer --- (,32) ---> (,32)
         self.conv2 = nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool1 = nn.MaxPool3d((2, 2, 2)) # (,32) ---> (,32)
 
-
         # 3rd conv layer --- (,32) ---> (,64)
         self.conv3 = nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool2 = nn.MaxPool3d((2, 2, 2))
-
 
         # 4th conv layer --- (,64) ---> (,64)
         self.conv4 = nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool3 = nn.MaxPool3d((2, 2, 2))  # (,64) ---> (,64)
 
-
         # 5th conv layer --- (,64) ---> (,128)
         self.conv5 = nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool4 = nn.MaxPool3d((2, 2, 2))  # (,128)---> (,128)
 
-
         # 6th conv layer --- (,128) ---> (,128)
         self.conv6 = nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool5 = nn.MaxPool3d((2, 2, 2))  # (,128) ---> (,128)
-
 
         # START OF FC LAYER STACK
         self.fc_layers = nn.Sequential(
@@ -435,14 +427,14 @@ class CNN_skip(nn.Module):
         self.fc_layers.apply(initialize_weights)
 
     def forward(self, initial_den_field):
-        '''
+        """
         Forward step of CNN with skip connections.
 
         INPUT: initial_den_field -- a tensor of the 3d initial density
 
         OUTPUT: self.fc_layers(fc_input) -- a tensor of the predicted halo masses at z=0, the end of the simulation
-    
-        '''
+
+        """
         m = nn.LeakyReLU(negative_slope = self.beta)
         c1 = m(self.conv1(initial_den_field.float()))  # (75,75,75,32) -- recompute.
         # print(type(c1))
@@ -580,12 +572,12 @@ class VAE(torch.nn.Module):
 
 
 def super_exp(tensor1):
-    ''' INPUTS:
+    """ INPUTS:
         -- tensor1 -- tensor to raise to e^e^x, in our case, mass predictions
 
         OUTPUTS:
         -- super_exp -- tensor raised to e^e^x per the paper
-    '''
+    """
 
     exp_part =torch.exp(tensor1)
     super_exp = torch.exp(exp_part)
@@ -601,7 +593,7 @@ def custom_loss_fcn(MODEL, tensor1, tensor2):
     return torch.mean(before_avging)
 
 def regularizer(weights, alpha):
-    '''
+    """
     Computes the natural log of the regularization priors ln[p(w)] as given in equation (7) of the paper. Amounts to L2-regularization over the
     convolutional layers, L1 and Lasso regularization over the fully-connected layers.
 
@@ -610,8 +602,9 @@ def regularizer(weights, alpha):
         -- alpha: the regularization parameter
     Output:
         -- alpha * L_reg: alpha times the sum of all regularization terms.
-    '''
-    c_layers = [0, 2, 5, 8, 11, 14] # List of indices of the conv layers
+    """
+
+    c_layers = [0, 2, 5, 8, 11, 14]  # List of indices of the conv layers
 
     conv_L2 = torch.zeros((1)).to(device)
     for i in range(6):
@@ -624,20 +617,16 @@ def regularizer(weights, alpha):
         fc_L1 += torch.sum(torch.abs(f_weight))
 
     Lasso = torch.zeros((1)).to(device)
-    for i in range(3):
-        layer_i = weights[f"fc_layers.{2*i}.weight"]
-        # for j in range(layer_i.shape[0]):
-        #     for k in range(layer_i.shape[1]):
-        #         Lasso += torch.sum(torch.sqrt(torch.pow(layer_i[j][k], 2)))
-        Lasso += torch.sum(torch.sqrt(torch.pow(layer_i, 2)))
-
+    for k in range(3):
+        layer_k = weights[f"fc_layers.{2*k}.weight"]
+        Lasso += torch.sum(torch.sqrt(torch.pow(layer_k, 2)))
 
     L_reg = conv_L2 + fc_L1 + Lasso
 
     return alpha * L_reg
 
 def Heaviside_regularizer(input_loss,super_exp,tensor2):
-    '''
+    """
         Input:
             -- input_loss -- loss computed by equation 5 of original paper. Tensor.
             -- super_exp  -- a function that computes a super-exponential function
@@ -648,7 +637,7 @@ def Heaviside_regularizer(input_loss,super_exp,tensor2):
             --avg_term -- Loss, after the heaviside adjustment terms have been
             added, a tensor.
 
-    '''
+    """
     zeros = torch.zeros_like(tensor2)
     first_term = input_loss*torch.relu(torch.sign(torch.abs(tensor2)+1)) # Use ReLU + sign to form Heaviside function
     second_term = super_exp(tensor2)*torch.relu(torch.sign(torch.abs(tensor2)-1))
