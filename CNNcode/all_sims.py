@@ -535,17 +535,17 @@ def regularizer(weights, alpha):
     '''
     c_layers = [0, 2, 5, 8, 11, 14] # List of indices of the conv layers
 
-    conv_L2 = torch.zeros((1))
+    conv_L2 = torch.zeros((1)).to(device)
     for i in range(6):
         c_weight = weights[f"conv_layers.{c_layers[i]}.weight"]
         conv_L2 += torch.sum(torch.pow(c_weight, 2))
 
-    fc_L1 = torch.zeros((1))
+    fc_L1 = torch.zeros((1)).to(device)
     for j in range(3):
         f_weight = weights[f"fc_layers.{2*j}.weight"]
         fc_L1 += torch.sum(torch.abs(f_weight))
 
-    Lasso = torch.zeros((1))
+    Lasso = torch.zeros((1)).to(device)
     for i in range(3):
         layer_i = weights[f"fc_layers.{2*i}.weight"]
         for j in range(layer_i.shape[0]):
