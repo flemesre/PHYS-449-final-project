@@ -460,10 +460,11 @@ class CNN_skip(nn.Module):
 
 
 class VAE(torch.nn.Module):
-    def __init__(self, n_latent, device):
+    def __init__(self, device):
         super(VAE, self).__init__()
         self.device = device
         self.beta = 0.03  # Leaky ReLU coefficient
+        self.n_latent = 10  # dimension of latent space
 
         # Encoder layers
         self.encoder = nn.Sequential().to(self.device)
@@ -490,9 +491,9 @@ class VAE(torch.nn.Module):
 
         # Latent layers
         self.fc1 = nn.Linear(128, 128).to(self.device)
-        self.fc1_1 = nn.Linear(128, n_latent).to(self.device)  # mu
-        self.fc1_2 = nn.Linear(128, n_latent).to(self.device)  # sigma
-        self.fc2 = nn.Linear(n_latent, 196).to(self.device)
+        self.fc1_1 = nn.Linear(128, self.n_latent).to(self.device)  # mu
+        self.fc1_2 = nn.Linear(128, self.n_latent).to(self.device)  # sigma
+        self.fc2 = nn.Linear(self.n_latent, 196).to(self.device)
 
         # Decoder layers
         self.decoder = nn.Sequential().to(self.device)
