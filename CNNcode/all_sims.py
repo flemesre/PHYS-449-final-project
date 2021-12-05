@@ -367,7 +367,7 @@ class CNN_skip(nn.Module):
         self.beta = 0.03  # Leaky ReLU coeff
 
         self.gamma = nn.Parameter(torch.tensor(1.0))  # gamma in Cauchy loss
-     
+
         # 1st conv layer --- (,1) ---> (,32)
         self.conv1 = nn.Conv3d(1, self.conv_layer1_kernels, (3, 3, 3), stride=1, padding=(1, 1, 1),
                                padding_mode='zeros')
@@ -439,7 +439,7 @@ class CNN_skip(nn.Module):
         c1 = m(self.conv1(initial_den_field.float()))  # (75,75,75,32) -- recompute.
         # print(type(c1))
         c2 = m(self.conv2(c1))  # (75,75,75,32)
-        p1 = self.pool1(c2+c1)  # 
+        p1 = self.pool1(c2+c1)  #
         # print(c1.shape,c2.shape)
         c3 = m(self.conv3(p1))  # (,64)
         # print(c3.shape,'C3')
@@ -572,10 +572,12 @@ class VAE(torch.nn.Module):
 
 
 def super_exp(tensor1):
-    """ INPUTS:
+    """
+    Super-exponential function
+    INPUTS:
         -- tensor1 -- tensor to raise to e^e^x, in our case, mass predictions
 
-        OUTPUTS:
+    OUTPUTS:
         -- super_exp -- tensor raised to e^e^x per the paper
     """
 
@@ -619,7 +621,7 @@ def regularizer(weights, alpha):
     Lasso = torch.zeros((1)).to(device)
     for k in range(3):
         layer_k = weights[f"fc_layers.{2*k}.weight"]
-        Lasso += torch.sum(torch.sqrt(torch.pow(layer_k, 2)))
+        Lasso += torch.sum(torch.sqrt(torch.sum(torch.pow(layer_k, 2), dim=0)))
 
     L_reg = conv_L2 + fc_L1 + Lasso
 
