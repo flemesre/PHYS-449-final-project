@@ -575,9 +575,11 @@ def super_exp(tensor1):
 
 
 def custom_loss_fcn(MODEL, tensor1, tensor2):
+    d_max = 1
+    d_min = -1
     thing_inside_ln = 1 + ((tensor1 - tensor2) / MODEL.gamma) ** 2
-    other_thing = torch.atan((max(tensor1) - tensor2) / MODEL.gamma) - torch.atan(
-        (min(tensor1) - tensor2) / MODEL.gamma)
+    other_thing =  torch.atan((d_max - tensor2) / MODEL.gamma) - torch.atan(
+         (d_min - tensor2) / MODEL.gamma)
     before_avging = torch.log(MODEL.gamma) + torch.log(thing_inside_ln) + torch.log(other_thing)
 
     return torch.mean(before_avging)
