@@ -199,7 +199,38 @@ class TestingDataset(torch.utils.data.Dataset):
         return torch.unsqueeze(input_data, 0), self.output_data[raw_idx]
 
 class CNN(nn.Module):
+    '''
+        DESC: CNN seen in the original paper. Architecture is as follows:
+
+        CONV1: with a kernel size of 32, stride = 1, zero padding of = 1 in each dimension (1-->32 channels)+LeakyReLU
+        CONV2: with a kernel size of 32, stride = 1, zero padding of = 1 in each dimension (32-->32 channels)
+        POOL1: 3d Max pool with a filter size of (2,2,2)+LeakyReLU
+
+        CONV1: with a kernel size of 64, stride = 1, zero padding of = 1 in each dimension (32-->64 channels)
+        POOL2: 3d Max pool with a filter size of (2,2,2)+LeakyReLU
+
+        CONV1: with a kernel size of 128, stride = 1, zero padding of = 1 in each dimension (64-->128 channels)
+        POOL3: 3d Max pool with a filter size of (2,2,2)+LeakyReLU 
+
+        CONV1: with a kernel size of 128, stride = 1, zero padding of = 1 in each dimension (128-->128 channels)
+        POOL4: 3d Max pool with a filter size of (2,2,2)+LeakyReLU
+
+        CONV1: with a kernel size of 128, stride = 1, zero padding of = 1 in each dimension (128-->128 channels)
+        POOL5: 3d Max pool with a filter size of (2,2,2)+LeakyReLU
+
+
+        Functions: init --- Creates the convolutional net, with the same parameters as in the original CNN
+                   initialize_weights --- initializes the network with weights initaliazed with Xavier weights
+                   forward --- Computes the forward step of the network.
+                   
+    '''
     def __init__(self):
+        '''
+            Initializes the conv net with the aforementioned architecture from the paper. Uses Cauchy loss parameter of gamma, which is 
+            trainable. Constructed with nn.Sequential.
+
+        '''
+
         super(CNN, self).__init__()
         self.conv_layer1_kernels = 32
         self.conv_layer2_kernels = 32
@@ -270,6 +301,10 @@ class CNN(nn.Module):
 
         # Xavier initialization
         def initialize_weights(N_net):
+            '''
+            Initializes network weights using the Xavier initialization method
+
+            '''
             if isinstance(N_net, nn.Conv3d) or isinstance(N_net, nn.Linear):
                 nn.init.xavier_uniform_(N_net.weight)
 
@@ -278,6 +313,13 @@ class CNN(nn.Module):
 
 
     def forward(self, initial_den_field):
+        '''
+            DESCRIPTION:
+            INPUTS:
+            OUTPUTS:
+
+        '''
+
         conv_output = self.conv_layers(initial_den_field)
         # print(f"conv output shape = {conv_output.shape}")
         fc_input = torch.flatten(conv_output, start_dim=1)
@@ -286,8 +328,31 @@ class CNN(nn.Module):
 
 
 class CNN_skip(nn.Module):
+    '''
+        DESC: CNN seen in the original paper, with skip connections implemented at layers: conv1+conv2 --> pool1, conv5+pool3 --> pool4 and
+        conv6+pool4 --> pool5
+
+
+        Functions: init --- Creates the convolutional net, with the same parameters as in the original CNN
+                   initialize_weights --- initializes the network with weights initaliazed with Xavier weights
+                   forward --- Computes the forward step of the network.
+                   
+    '''
+
+
     def __init__(self):
+        '''
+        Implements a 3D Convolutional neural network with skip connections with Leaky ReLU and regularization term gamma introduced
+        by the paper.
+
+        Skip connections at conv1+conv2 --> pool 1, conv5 + pool3 --> pool4, conv6 + pool4 --> pool5
+
+        Init also includes a sub-method for initalizing the weights of the network. Has no output, nor input.
+        
+        '''
         super(CNN_skip, self).__init__()
+
+        # CONVOLUTIONAL LAYERS
         self.conv_layer1_kernels = 32
         self.conv_layer2_kernels = 32
         self.conv_layer3_kernels = 64
@@ -295,6 +360,7 @@ class CNN_skip(nn.Module):
         self.conv_layer5_kernels = 128
         self.conv_layer6_kernels = 128
 
+        # FULLY CONNECTED LAYERS
         self.fc_layer1_neurons = 256
         self.fc_layer2_neurons = 128
         self.fc_layer3_neurons = 1
@@ -303,42 +369,43 @@ class CNN_skip(nn.Module):
 
         self.gamma = nn.Parameter(torch.tensor(1.0))  # gamma in Cauchy loss
 
-        # self.conv_layers = nn.Sequential( 864+2-3/1 +1 = 863+1
-        # 1st conv layer --- (864,864,864,1) ---> (864,864,864,32)
+     
+        # 1st conv layer --- (,1) ---> (,32)
         self.conv1 = nn.Conv3d(1, self.conv_layer1_kernels, (3, 3, 3), stride=1, padding=(1, 1, 1),
                                padding_mode='zeros')
-        # nn.LeakyReLU(negative_slope=self.beta),
 
-        # 2nd conv layer --- (864,864,864,32) ---> (864,864,864,32)
+
+        # 2nd conv layer --- (,32) ---> (,32)
         self.conv2 = nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool1 = nn.MaxPool3d((2, 2, 2)) # (864,864,864,32) ---> (862,862,862,32)
-        # nn.LeakyReLU(negative_slope=self.beta),
+        self.pool1 = nn.MaxPool3d((2, 2, 2)) # (,32) ---> (,32)
 
-        # 3rd conv layer --- (862,862,862,32) ---> (862,862,862,64)
+
+        # 3rd conv layer --- (,32) ---> (,64)
         self.conv3 = nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool2 = nn.MaxPool3d((2, 2, 2))
-        # nn.LeakyReLU(negative_slope=self.beta), (862,862,862,64) ---> (860,860,860,64)
 
-        # 4th conv layer --- (860,860,860,64) ---> (860,860,860,64)
+
+        # 4th conv layer --- (,64) ---> (,64)
         self.conv4 = nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool3 = nn.MaxPool3d((2, 2, 2))  # (860,860,860,64) ---> (858,858,858,64)
-        # nn.LeakyReLU(negative_slope=self.beta),
+        self.pool3 = nn.MaxPool3d((2, 2, 2))  # (,64) ---> (,64)
 
-        # 5th conv layer --- (858,858,858,64) ---> (858,858,858,128)
+
+        # 5th conv layer --- (,64) ---> (,128)
         self.conv5 = nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool4 = nn.MaxPool3d((2, 2, 2))  # (858,858,858,128)---> (856,856,856,128)
-        # nn.LeakyReLU(negative_slope=self.beta),
+        self.pool4 = nn.MaxPool3d((2, 2, 2))  # (,128)---> (,128)
 
-        # 6th conv layer --- (856,856,856,128) ---> (856,856,856,128)
+
+        # 6th conv layer --- (,128) ---> (,128)
         self.conv6 = nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
                       stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool5 = nn.MaxPool3d((2, 2, 2))  # (856,856,856,128) ---> (854,854,854,128)
-        # nn.LeakyReLU(negative_slope=self.beta),
+        self.pool5 = nn.MaxPool3d((2, 2, 2))  # (,128) ---> (,128)
 
+
+        # START OF FC LAYER STACK
         self.fc_layers = nn.Sequential(
             # 1st fc layer
             nn.Linear(1024, self.fc_layer1_neurons),
@@ -357,6 +424,7 @@ class CNN_skip(nn.Module):
             if isinstance(N_net, nn.Conv3d) or isinstance(N_net, nn.Linear):
                 nn.init.xavier_uniform_(N_net.weight)
 
+        # INITIALIZING WEIGHTS
         torch.nn.init.xavier_uniform_(self.conv1.weight.data)
         torch.nn.init.xavier_uniform_(self.conv2.weight.data)
         torch.nn.init.xavier_uniform_(self.conv3.weight)
@@ -367,28 +435,36 @@ class CNN_skip(nn.Module):
         self.fc_layers.apply(initialize_weights)
 
     def forward(self, initial_den_field):
+        '''
+        Forward step of CNN with skip connections.
+
+        INPUT: initial_den_field -- a tensor of the 3d initial density
+
+        OUTPUT: self.fc_layers(fc_input) -- a tensor of the predicted halo masses at z=0, the end of the simulation
+    
+        '''
         m = nn.LeakyReLU(negative_slope = self.beta)
         c1 = m(self.conv1(initial_den_field.float()))  # (75,75,75,32) -- recompute.
         # print(type(c1))
         c2 = m(self.conv2(c1))  # (75,75,75,32)
-        p1 = self.pool1(c2+c1)  # (862,862,862,32)
+        p1 = self.pool1(c2+c1)  # 
         # print(c1.shape,c2.shape)
-        c3 = m(self.conv3(p1))  # (862,862,862,64)
+        c3 = m(self.conv3(p1))  # (,64)
         # print(c3.shape,'C3')
-        p2 = self.pool2(c3)  # (860,860,860,64)
+        p2 = self.pool2(c3)  # (,64)
         # print(p2.shape,'P2')
-        c4 = m(self.conv4(p2))  # (860,860,860, 64)
+        c4 = m(self.conv4(p2))  # (, 64)
         # print(c4.shape,'C4')
-        p3 = self.pool3(c4)  # (858,858,858,64)
+        p3 = self.pool3(c4)  # (,64)
         # print(p3.shape,'P3')
-        c5 = m(self.conv5(p3))  # (858,858,858,128)
+        c5 = m(self.conv5(p3))  # (,128)
         # print(c5.shape,'C5')
-        p4 = self.pool4(c5+p3)  # (856,856,856,128)
+        p4 = self.pool4(c5+p3)  # (,128)
         # print(p4.shape,'P4')
 
-        c6 = m(self.conv6(p4))  # (856,856,856,128)
+        c6 = m(self.conv6(p4))  # (,128)
         # print(c6.shape,'C6')
-        p5 = self.pool5(c6+p4)  # (854,854,854,128)
+        p5 = self.pool5(c6+p4)  # (,128)
         # print(p5.shape,'P5')
         # Skip connections: c1+c2 --> p1
         #                   p3+c5 --> p4
@@ -399,6 +475,8 @@ class CNN_skip(nn.Module):
         # print(f"conv output shape = {conv_output.shape}")
         fc_input = torch.flatten(conv_output, start_dim=1)
         # print(f"fc input shape = {fc_input.shape}")
+
+        #OUTPUT THE PREDICTED MASSES
         return self.fc_layers(fc_input)
 
 
