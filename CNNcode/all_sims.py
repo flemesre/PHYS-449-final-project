@@ -570,8 +570,8 @@ def Heaviside_regularizer(input_loss,super_exp,tensor2):
 
     '''
     zeros = torch.zeros_like(tensor2)
-    first_term = input_loss*torch.heaviside((torch.abs(tensor2)+1),zeros)
-    second_term = super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1,zeros)
+    first_term = input_loss*torch.relu(torch.sign(torch.abs(tensor2)+1)) # Use ReLU + sign to form Heaviside function
+    second_term = super_exp(tensor2)*torch.relu(torch.sign(torch.abs(tensor2)-1))
     avg_term = torch.mean(first_term+second_term)
 
     return avg_term  # L-pred
