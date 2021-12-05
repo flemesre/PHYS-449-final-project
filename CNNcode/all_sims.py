@@ -740,7 +740,7 @@ if __name__ == '__main__':
                     # print(torch.unsqueeze(_y, 1).shape)
                     # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
                     test_loss = custom_loss_fcn(model, torch.unsqueeze(_y, 1).to(device), model(_x.to(device)))
-                    updated_test_loss = Heaviside_regularizer(test_loss, super_exp, model(_x.to(device))) + regularizer(
+                    updated_test_loss = Heaviside_regularizer(test_loss, model(_x.to(device))) + regularizer(
                         model.state_dict(), model.alpha)
                 train_loss_history.append(updated_loss.detach().cpu())
                 test_loss_history.append(updated_test_loss.detach().cpu())
