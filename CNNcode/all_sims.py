@@ -743,9 +743,9 @@ if __name__ == '__main__':
                     test_loss = custom_loss_fcn(model, torch.unsqueeze(_y, 1).to(device), model(_x.to(device)))
                     updated_test_loss = Heaviside_regularizer(test_loss, model(_x.to(device))) + regularizer(
                         model.state_dict(), model.alpha)
-                train_loss_history.append(updated_loss.detach().cpu())
-                test_loss_history.append(updated_test_loss.detach().cpu())
-                gamma_history.append(model.gamma.detach().cpu())
+                train_loss_history.append(updated_loss.item())
+                test_loss_history.append(updated_test_loss.item())
+                gamma_history.append(model.gamma.item())
 
                 end = time.time()
                 print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss} "
