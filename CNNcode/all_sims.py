@@ -7,11 +7,11 @@ import argparse, sys
 
 
 def get_halo_mass(sims):
-    HALO_mass=[]
+    HALO_mass = []
     for sim_index in sims:
         # loading halo masses
         halo_mass0 = np.load(path + 'full-data_reseed' + str(sim_index)
-                            + '_simulation_reseed' + str(sim_index) + '_halo_mass_particles.npy')
+                             + '_simulation_reseed' + str(sim_index) + '_halo_mass_particles.npy')
         print('Loaded halo mass ' + str(sim_index))
         print()
         HALO_mass.append(halo_mass0)
@@ -31,13 +31,13 @@ def get_sim_list(sims):
         except OSError:  # FileNotFoundError
             print('sim_' + str(sim_index) + '_list.npy not found, creating sim_' + str(sim_index) + '_list.npy')
             sim_1_list0 = []
-            for I in range(num_particles):
-                if halo_mass[sims.index(sim_index)][I] > 1:
-                    log_mass = np.log10(halo_mass[sims.index(sim_index)][I])
-                    if log_mass <= log_high_mass_limit and log_mass >= log_low_mass_limit:
-                        sim_1_list0.append(I)
-                if I % 1e6 == 0:
-                    print(f"{I} particles processed")
+            for i in range(num_particles):
+                if halo_mass[sims.index(sim_index)][i] > 1:
+                    log_mass = np.log10(halo_mass[sims.index(sim_index)][i])
+                    if log_high_mass_limit >= log_mass >= log_low_mass_limit:
+                        sim_1_list0.append(i)
+                if i % 1e6 == 0:
+                    print(f"{i} particles processed")
 
             sim_1_list = np.array(sim_1_list0)
             np.save(path + 'sim_' + str(sim_index) + '_list.npy', sim_1_list)
@@ -60,13 +60,13 @@ def data_processing(index):
 
     for sim_index in sims:
         try:
-            print("Attempting to load 3d_den_pad"+str(sim_index)+".pt")
-            _3d_den_pad = torch.load(path + '3d_den_pad'+str(sim_index)+'.pt').to(device0)
-            print("Loaded initial density field "+str(sim_index))
+            print("Attempting to load 3d_den_pad" + str(sim_index) + ".pt")
+            _3d_den_pad = torch.load(path + '3d_den_pad' + str(sim_index) + '.pt').to(device0)
+            print("Loaded initial density field " + str(sim_index))
 
         except OSError:  # FileNotFoundError
-            print('3d_den_pad'+str(sim_index)+'.pt not found, creating 3d_den_pad'+str(sim_index)+'.pt')
-            den_contrast = torch.tensor(np.load(path + 'den_contrast_'+str(sim_index)+'.npy')).to(device0)
+            print('3d_den_pad' + str(sim_index) + '.pt not found, creating 3d_den_pad' + str(sim_index) + '.pt')
+            den_contrast = torch.tensor(np.load(path + 'den_contrast_' + str(sim_index) + '.npy')).to(device0)
 
             # normalization: set mean = 0, sd = 1
             norm_den_contrast = (den_contrast - torch.mean(den_contrast)) / torch.std(den_contrast)
@@ -74,64 +74,52 @@ def data_processing(index):
             # maps 1D density array to 3D field
             _3d_den0 = norm_den_contrast.reshape(sim_length, sim_length, sim_length)
 
-            pad_den_size = sim_length + subbox_pad*2
+            pad_den_size = sim_length + subbox_pad * 2
             _3d_den_pad = torch.tensor(np.zeros((pad_den_size, pad_den_size, pad_den_size))).to(device0)
 
             for i in range(pad_den_size):
                 for j in range(pad_den_size):
                     for k in range(pad_den_size):
                         _3d_den_pad[i, j, k] = _3d_den0[
-                            (i-subbox_pad) % sim_length,
-                            (j-subbox_pad) % sim_length, (k-subbox_pad) % sim_length]
+                            (i - subbox_pad) % sim_length,
+                            (j - subbox_pad) % sim_length, (k - subbox_pad) % sim_length]
                 if i % 2 == 0:
-                    print(f"{i+1} out of {pad_den_size} slices completed")
+                    print(f"{i + 1} out of {pad_den_size} slices completed")
 
-            torch.save(_3d_den_pad, path + '3d_den_pad'+str(sim_index)+'.pt')
-            print('3d_den_pad'+str(sim_index)+'.py created')
+            torch.save(_3d_den_pad, path + '3d_den_pad' + str(sim_index) + '.pt')
+            print('3d_den_pad' + str(sim_index) + '.py created')
         print()
         _3d_DEN.append(_3d_den_pad)
 
         try:
-            print("Attempting to load norm_halo_mass"+str(sim_index)+".npt")
-            norm_halo_mass0 = torch.load(path + 'norm_halo_mass'+str(sim_index)+'.npt').to(device0)
-            print("Loaded the normalized halo masses "+str(sim_index))
+            print("Attempting to load norm_halo_mass" + str(sim_index) + ".npt")
+            norm_halo_mass0 = torch.load(path + 'norm_halo_mass' + str(sim_index) + '.npt').to(device0)
+            print("Loaded the normalized halo masses " + str(sim_index))
 
         except OSError:  # FileNotFoundError
-            print('norm_halo_mass'+str(sim_index)+'.npy not found, creating norm_halo_mass'
-                  + str(sim_index)+'.npt')
+            print('norm_halo_mass' + str(sim_index) + '.npy not found, creating norm_halo_mass'
+                  + str(sim_index) + '.npt')
             # creating restricted_halo_mass, which uses the log mass
             # removing the particles in halo_mass that are outside of the mass range
             restricted_halo_mass = torch.tensor(np.zeros(train_num_particles[sims.index(sim_index)])).to(device0)
-            for I in range(train_num_particles[sims.index(sim_index)]):
-                restricted_halo_mass[I] = np.log10(halo_mass[sims.index(sim_index)][sim_list[sims.index(sim_index)][I]])
-                if I % 5e5 == 0:
-                    print(f"{I} particles processed")
+            for i in range(train_num_particles[sims.index(sim_index)]):
+                restricted_halo_mass[i] = np.log10(halo_mass[sims.index(sim_index)][sim_list[sims.index(sim_index)][i]])
+                if i % 5e5 == 0:
+                    print(f"{i} particles processed")
 
             min_mass = torch.min(restricted_halo_mass)
             max_mass = torch.max(restricted_halo_mass)
 
-            norm_halo_mass0 = restricted_halo_mass - min_mass -(max_mass - min_mass) / 2
+            norm_halo_mass0 = restricted_halo_mass - min_mass - (max_mass - min_mass) / 2
             norm_halo_mass0 = norm_halo_mass0 * (2 / (max_mass - min_mass))
 
-            torch.save(norm_halo_mass0, path + 'norm_halo_mass'+str(sim_index)+'.npt')
-            print('norm_halo_mass'+str(sim_index)+'.npt created')
+            torch.save(norm_halo_mass0, path + 'norm_halo_mass' + str(sim_index) + '.npt')
+            print('norm_halo_mass' + str(sim_index) + '.npt created')
 
         print()
         NORM_halo_mass.append(norm_halo_mass0)
 
     return _3d_DEN, NORM_halo_mass
-
-
-def compute_subbox(i0, j0, k0, input_matrix):
-    output_matrix = np.zeros((subbox_length, subbox_length, subbox_length))
-    i0 -= subbox_length // 2
-    j0 -= subbox_length // 2
-    k0 -= subbox_length // 2
-    for i in range(subbox_length):
-        for j in range(subbox_length):
-            for k in range(subbox_length):
-                output_matrix[i, j, k] = input_matrix[(i + i0) % sim_length, (j + j0) % sim_length, (k + k0) % sim_length]
-    return output_matrix
 
 
 def which_sim(num):
@@ -177,7 +165,7 @@ class TestingDataset(torch.utils.data.Dataset):
 
     def __init__(self):
         self.OUTPUT_data = []
-        self.test_indices = random.sample(range(train_num_particles[sims.index(test_sim)]),test_num)
+        self.test_indices = random.sample(range(train_num_particles[sims.index(test_sim)]), test_num)
         for idx in self.test_indices:
             self.OUTPUT_data.append(norm_halo_mass[sims.index(test_sim)][idx])
 
@@ -189,8 +177,8 @@ class TestingDataset(torch.utils.data.Dataset):
     def __getitem__(self, raw_idx):
         # idx is the index in the reduced dataset, after the particles have been screened
         # J is the index in the original dataset
-        idx = self.test_indices[raw_idx] # raw_idx goes from 0 to test_num - 1
-        J = sim_list[sims.index(test_sim)][idx] # index in original, unscreened dataset
+        idx = self.test_indices[raw_idx]  # raw_idx goes from 0 to test_num - 1
+        J = sim_list[sims.index(test_sim)][idx]  # index in original, unscreened dataset
 
         i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
         subbox = _3d_den[sims.index(test_sim)][i0 - subbox_pad:i0 + subbox_pad + 1,
@@ -223,13 +211,12 @@ class CNN(nn.Module):
         Functions: init --- Creates the convolutional net, with the same parameters as in the original CNN
                    initialize_weights --- initializes the network with weights initaliazed with Xavier weights
                    forward --- Computes the forward step of the network.
-
     """
+
     def __init__(self):
         """
-            Initializes the conv net with the aforementioned architecture from the paper. Uses Cauchy loss parameter of gamma, which is
-            trainable. Constructed with nn.Sequential.
-
+            Initializes the conv net with the aforementioned architecture from the paper. Uses Cauchy loss parameter of
+            gamma, which istrainable. Constructed with nn.Sequential.
         """
 
         super(CNN, self).__init__()
@@ -244,16 +231,16 @@ class CNN(nn.Module):
         self.fc_layer2_neurons = 128
         self.fc_layer3_neurons = 1
 
-        self.beta = 0.03 # Leaky ReLU coeff
+        self.beta = 0.03  # Leaky ReLU coeff
 
-        self.gamma = nn.Parameter(torch.tensor(0.2)) # gamma in Cauchy loss # gamma in Cauchy loss
+        self.gamma = nn.Parameter(torch.tensor(0.2))  # gamma in Cauchy loss # gamma in Cauchy loss
 
-        self.alpha = torch.tensor(10**float(-2.5)) # Regularization coefficient
+        self.alpha = torch.tensor(10 ** float(-2.5))  # Regularization coefficient
 
         self.conv_layers = nn.Sequential(
             # 1st conv layer
-            nn.Conv3d(1,self.conv_layer1_kernels,(3,3,3),
-                      stride=1,padding=(1, 1, 1), padding_mode='zeros'),
+            nn.Conv3d(1, self.conv_layer1_kernels, (3, 3, 3),
+                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
             nn.LeakyReLU(negative_slope=self.beta),
 
             # 2nd conv layer
@@ -329,8 +316,8 @@ class CNN(nn.Module):
 
 class CNN_skip(nn.Module):
     """
-        DESC: CNN seen in the original paper, with skip connections implemented at layers: conv1+conv2 --> pool1, conv5+pool3 --> pool4 and
-        conv6+pool4 --> pool5
+        DESC: CNN seen in the original paper, with skip connections implemented at layers: conv1+conv2 --> pool1,
+        conv5+pool3 --> pool4 and conv6+pool4 --> pool5
 
 
         Functions: init --- Creates the convolutional net, with the same parameters as in the original CNN
@@ -341,8 +328,8 @@ class CNN_skip(nn.Module):
 
     def __init__(self):
         """
-        Implements a 3D Convolutional neural network with skip connections with Leaky ReLU and regularization term gamma introduced
-        by the paper.
+        Implements a 3D Convolutional neural network with skip connections with Leaky ReLU and regularization term
+        gamma introduced by the paper.
 
         Skip connections at conv1+conv2 --> pool 1, conv5 + pool3 --> pool4, conv6 + pool4 --> pool5
 
@@ -374,27 +361,27 @@ class CNN_skip(nn.Module):
 
         # 2nd conv layer --- (,32) ---> (,32)
         self.conv2 = nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
-        self.pool1 = nn.MaxPool3d((2, 2, 2)) # (,32) ---> (,32)
+                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
+        self.pool1 = nn.MaxPool3d((2, 2, 2))  # (,32) ---> (,32)
 
         # 3rd conv layer --- (,32) ---> (,64)
         self.conv3 = nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
+                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool2 = nn.MaxPool3d((2, 2, 2))
 
         # 4th conv layer --- (,64) ---> (,64)
         self.conv4 = nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
+                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool3 = nn.MaxPool3d((2, 2, 2))  # (,64) ---> (,64)
 
         # 5th conv layer --- (,64) ---> (,128)
         self.conv5 = nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
+                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool4 = nn.MaxPool3d((2, 2, 2))  # (,128)---> (,128)
 
         # 6th conv layer --- (,128) ---> (,128)
         self.conv6 = nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros')
+                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
         self.pool5 = nn.MaxPool3d((2, 2, 2))  # (,128) ---> (,128)
 
         # START OF FC LAYER STACK
@@ -435,11 +422,11 @@ class CNN_skip(nn.Module):
         OUTPUT: self.fc_layers(fc_input) -- a tensor of the predicted halo masses at z=0, the end of the simulation
 
         """
-        m = nn.LeakyReLU(negative_slope = self.beta)
+        m = nn.LeakyReLU(negative_slope=self.beta)
         c1 = m(self.conv1(initial_den_field.float()))  # (75,75,75,32) -- recompute.
         # print(type(c1))
         c2 = m(self.conv2(c1))  # (75,75,75,32)
-        p1 = self.pool1(c2+c1)  #
+        p1 = self.pool1(c2 + c1)  #
         # print(c1.shape,c2.shape)
         c3 = m(self.conv3(p1))  # (,64)
         # print(c3.shape,'C3')
@@ -451,12 +438,12 @@ class CNN_skip(nn.Module):
         # print(p3.shape,'P3')
         c5 = m(self.conv5(p3))  # (,128)
         # print(c5.shape,'C5')
-        p4 = self.pool4(c5+p3)  # (,128)
+        p4 = self.pool4(c5 + p3)  # (,128)
         # print(p4.shape,'P4')
 
         c6 = m(self.conv6(p4))  # (,128)
         # print(c6.shape,'C6')
-        p5 = self.pool5(c6+p4)  # (,128)
+        p5 = self.pool5(c6 + p4)  # (,128)
         # print(p5.shape,'P5')
         # Skip connections: c1+c2 --> p1
         #                   p3+c5 --> p4
@@ -468,7 +455,7 @@ class CNN_skip(nn.Module):
         fc_input = torch.flatten(conv_output, start_dim=1)
         # print(f"fc input shape = {fc_input.shape}")
 
-        #OUTPUT THE PREDICTED MASSES
+        # OUTPUT THE PREDICTED MASSES
         return self.fc_layers(fc_input)
 
 
@@ -482,22 +469,22 @@ class VAE(torch.nn.Module):
         self.encoder = nn.Sequential().to(self.device)
         self.encoder.add_module("e_dropout", nn.Dropout(0.2))
         print(self.encoder)
-        self.encoder.add_module("e_conv1", nn.Conv3d(1, 32, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
+        self.encoder.add_module("e_conv1", nn.Conv3d(1, 32, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
         self.encoder.add_module("e_activation1", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv2", nn.Conv3d(32, 32, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
-        self.encoder.add_module("pool1",nn.MaxPool3d(2, 2, 2))
+        self.encoder.add_module("e_conv2", nn.Conv3d(32, 32, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("pool1", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation2", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv3", nn.Conv3d(32, 64, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
-        self.encoder.add_module("pool2",nn.MaxPool3d(2, 2, 2))
+        self.encoder.add_module("e_conv3", nn.Conv3d(32, 64, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("pool2", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation3", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv4", nn.Conv3d(64, 128, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
-        self.encoder.add_module("pool3",nn.MaxPool3d(2, 2, 2))
+        self.encoder.add_module("e_conv4", nn.Conv3d(64, 128, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("pool3", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation4", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv5", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
-        self.encoder.add_module("pool4",nn.MaxPool3d(2, 2, 2))
+        self.encoder.add_module("e_conv5", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("pool4", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation5", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv6", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1,padding_mode ='zeros'))
-        self.encoder.add_module("pool5",nn.MaxPool3d(2, 2, 2))
+        self.encoder.add_module("e_conv6", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("pool5", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation6", nn.LeakyReLU(negative_slope=self.beta))
         self.encoder.add_module("e_flatten", nn.Flatten())
 
@@ -511,21 +498,21 @@ class VAE(torch.nn.Module):
         self.decoder = nn.Sequential().to(self.device)
         self.decoder.add_module("d_unflatten", nn.Unflatten(dim=1, unflattened_size=(196, 1, 1)))
         self.decoder.add_module("d_conv1", nn.ConvTranspose3d(196, 128, (4, 4, 4), stride=1, padding=0))
-        #self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
+        # self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
         self.decoder.add_module("d_activation1", nn.LeakyReLU(negative_slope=self.beta))
-        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
+        self.decoder.add_module("d_unpool1", nn.MaxUnpool3d(2, 2, 2))
         self.decoder.add_module("d_conv2", nn.ConvTranspose3d(128, 128, (4, 4, 4), stride=2, padding=0))
         self.decoder.add_module("d_activation2", nn.LeakyReLU(negative_slope=self.beta))
-        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
+        self.decoder.add_module("d_unpool1", nn.MaxUnpool3d(2, 2, 2))
         self.decoder.add_module("d_conv3", nn.ConvTranspose3d(128, 64, (4, 4, 4), stride=1, padding=0))
         self.decoder.add_module("d_activation3", nn.LeakyReLU(negative_slope=self.beta))
-        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
+        self.decoder.add_module("d_unpool1", nn.MaxUnpool3d(2, 2, 2))
         self.decoder.add_module("d_conv4", nn.ConvTranspose3d(64, 32, (2, 2, 2), stride=1, padding=0))
         self.decoder.add_module("d_activation4", nn.LeakyReLU(negative_slope=self.beta))
-        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
+        self.decoder.add_module("d_unpool1", nn.MaxUnpool3d(2, 2, 2))
         self.decoder.add_module("d_conv5", nn.ConvTranspose3d(32, 32, (2, 2, 2), stride=1, padding=0))
         self.decoder.add_module("d_activation5", nn.LeakyReLU(negative_slope=self.beta))
-        self.decoder.add_module("d_unpool1",nn.MaxUnpool3d(2,2,2))
+        self.decoder.add_module("d_unpool1", nn.MaxUnpool3d(2, 2, 2))
         self.decoder.add_module("d_conv6", nn.ConvTranspose3d(32, 1, (2, 2, 2), stride=1, padding=0))
         self.decoder.add_module("d_activation6", nn.LeakyReLU(negative_slope=self.beta))
 
@@ -543,7 +530,7 @@ class VAE(torch.nn.Module):
 
     # encoder function, mnist data to compressed latent space (mu and sigma)
     def encode(self, x):
-        print(x.shape,'INPUT')
+        print(x.shape, 'INPUT')
         x = self.encoder(x.to(self.device)).to(self.device)
         print(x.shape)
         mu = self.fc1_1(self.fc1(x.to(self.device))).to(self.device)
@@ -581,23 +568,25 @@ def super_exp(tensor1):
         -- super_exp -- tensor raised to e^e^x per the paper
     """
 
-    exp_part =torch.exp(tensor1)
-    super_exp = torch.exp(exp_part)
+    exp = torch.exp(torch.exp(tensor1))
 
-    return super_exp
+    return exp
 
 
 def custom_loss_fcn(MODEL, tensor1, tensor2):
-    thing_inside_ln = 1+((tensor1-tensor2)/MODEL.gamma)**2
-    other_thing = torch.atan((max(tensor1) - tensor2)/MODEL.gamma) - torch.atan((min(tensor1) - tensor2)/MODEL.gamma)
+    thing_inside_ln = 1 + ((tensor1 - tensor2) / MODEL.gamma) ** 2
+    other_thing = torch.atan((max(tensor1) - tensor2) / MODEL.gamma) - torch.atan(
+        (min(tensor1) - tensor2) / MODEL.gamma)
     before_avging = torch.log(MODEL.gamma) + torch.log(thing_inside_ln) + torch.log(other_thing)
 
     return torch.mean(before_avging)
 
+
 def regularizer(weights, alpha):
     """
-    Computes the natural log of the regularization priors ln[p(w)] as given in equation (7) of the paper. Amounts to L2-regularization over the
-    convolutional layers, L1 and Lasso regularization over the fully-connected layers.
+    Computes the natural log of the regularization priors ln[p(w)] as given in equation (7) of the paper.
+    Amounts to L2-regularization over the convolutional layers, L1 and Lasso regularization over the
+    fully-connected layers.
 
     Inputs:
         -- weights: the state_dict() for the CNN
@@ -608,26 +597,27 @@ def regularizer(weights, alpha):
 
     c_layers = [0, 2, 5, 8, 11, 14]  # List of indices of the conv layers
 
-    conv_L2 = torch.zeros((1)).to(device)
+    conv_L2 = torch.zeros(1).to(device)
     for i in range(6):
         c_weight = weights[f"conv_layers.{c_layers[i]}.weight"]
         conv_L2 += torch.sum(torch.pow(c_weight, 2))
 
-    fc_L1 = torch.zeros((1)).to(device)
+    fc_L1 = torch.zeros(1).to(device)
     for j in range(3):
-        f_weight = weights[f"fc_layers.{2*j}.weight"]
+        f_weight = weights[f"fc_layers.{2 * j}.weight"]
         fc_L1 += torch.sum(torch.abs(f_weight))
 
-    Lasso = torch.zeros((1)).to(device)
+    Lasso = torch.zeros(1).to(device)
     for k in range(3):
-        layer_k = weights[f"fc_layers.{2*k}.weight"]
+        layer_k = weights[f"fc_layers.{2 * k}.weight"]
         Lasso += torch.sum(torch.sqrt(torch.sum(torch.pow(layer_k, 2), dim=0)))
 
     L_reg = conv_L2 + fc_L1 + Lasso
 
     return alpha * L_reg
 
-def Heaviside_regularizer(input_loss,super_exp,tensor2):
+
+def Heaviside_regularizer(input_loss, tensor2):
     """
         Input:
             -- input_loss -- loss computed by equation 5 of original paper. Tensor.
@@ -640,10 +630,10 @@ def Heaviside_regularizer(input_loss,super_exp,tensor2):
             added, a tensor.
 
     """
-    zeros = torch.zeros_like(tensor2)
-    first_term = input_loss*torch.relu(torch.sign(torch.abs(tensor2)+1)) # Use ReLU + sign to form Heaviside function
-    second_term = super_exp(tensor2)*torch.relu(torch.sign(torch.abs(tensor2)-1))
-    avg_term = torch.mean(first_term+second_term)
+
+    first_term = input_loss * torch.relu(torch.sign(torch.abs(tensor2) + 1))  # Make Heaviside function with ReLU+sign
+    second_term = super_exp(tensor2) * torch.relu(torch.sign(torch.abs(tensor2) - 1))
+    avg_term = torch.mean(first_term + second_term)
 
     return avg_term  # L-pred
 
@@ -700,7 +690,7 @@ if __name__ == '__main__':
         start = time.time()
         for batch, (_den_field, _true_mass) in enumerate(train_dataloader):
             end = time.time()
-            print(f"batch = {batch}   time = {end-start}")
+            print(f"batch = {batch}   time = {end - start}")
             start = time.time()
         sys.exit()
 
@@ -719,7 +709,7 @@ if __name__ == '__main__':
     test_loss_history = []
     gamma_history = []
 
-    graph_x_axis = np.append(np.arange(0, num_iterations-1, 10), num_iterations-1)
+    graph_x_axis = np.append(np.arange(0, num_iterations - 1, 10), num_iterations - 1)
     # np.linspace(0,num_iterations-1,(num_iterations-1)//10+1)
 
     # training loop
@@ -731,8 +721,9 @@ if __name__ == '__main__':
         # print(_true_mass.shape)
         # print(torch.unsqueeze(_true_mass, 1).shape)
         # loss = loss_fcn(predicted_mass, torch.unsqueeze(_true_mass, 1).to(device))
-        loss = custom_loss_fcn(model,torch.unsqueeze(_true_mass, 1).to(device),predicted_mass)
-        updated_loss = Heaviside_regularizer(loss,super_exp,predicted_mass) + regularizer(model.state_dict(), model.alpha)
+        loss = custom_loss_fcn(model, torch.unsqueeze(_true_mass, 1).to(device), predicted_mass)
+        updated_loss = Heaviside_regularizer(loss, predicted_mass) + regularizer(model.state_dict(),
+                                                                                 model.alpha)
         optimizer.zero_grad()
         updated_loss.backward()
         optimizer.step()
@@ -749,7 +740,8 @@ if __name__ == '__main__':
                     # print(torch.unsqueeze(_y, 1).shape)
                     # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
                     test_loss = custom_loss_fcn(model, torch.unsqueeze(_y, 1).to(device), model(_x.to(device)))
-                    updated_test_loss = Heaviside_regularizer(test_loss,super_exp,model(_x.to(device))) + regularizer(model.state_dict(), model.alpha)
+                    updated_test_loss = Heaviside_regularizer(test_loss, super_exp, model(_x.to(device))) + regularizer(
+                        model.state_dict(), model.alpha)
                 train_loss_history.append(updated_loss.detach().cpu())
                 test_loss_history.append(updated_test_loss.detach().cpu())
                 gamma_history.append(model.gamma.detach().cpu())
@@ -763,7 +755,7 @@ if __name__ == '__main__':
                 # print(_x)
                 # print(_y)
 
-        if batch == num_iterations-1:
+        if batch == num_iterations - 1:
             end = time.time()
             print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  "
                   f"test time = {end - start}")
@@ -772,8 +764,8 @@ if __name__ == '__main__':
     if save_model:
         torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
 
-    plt.plot(graph_x_axis, train_loss_history,label='training loss')
-    plt.plot(graph_x_axis, test_loss_history,label='testing loss')
+    plt.plot(graph_x_axis, train_loss_history, label='training loss')
+    plt.plot(graph_x_axis, test_loss_history, label='testing loss')
     plt.title('CNN training performance')
     plt.legend(loc='best')
     plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
@@ -787,15 +779,16 @@ if __name__ == '__main__':
         import plotly.express as px
         import plotly.io as pi
 
-        data_frame = {'iterations': graph_x_axis, 'training loss': train_loss_history, 'testing loss': test_loss_history}
+        data_frame = {'iterations': graph_x_axis, 'training loss': train_loss_history,
+                      'testing loss': test_loss_history}
         fig = px.line(data_frame, x='iterations', y=["training loss", "testing loss"],
-                      title='CNN training performance, ' + str(num_iterations)+'iterations, '+str(int(time.time())),
-                      labels={'value':'loss'})
+                      title='CNN training performance, ' + str(num_iterations) + 'iterations, ' + str(int(time.time())),
+                      labels={'value': 'loss'})
         fig.write_html("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
 
-        data_frame2 = {'iterations' : graph_x_axis, 'gamma' : gamma_history}
+        data_frame2 = {'iterations': graph_x_axis, 'gamma': gamma_history}
         fig2 = px.line(data_frame2, x='iterations', y='gamma',
-                       title='CNN gamma history, ' + str(num_iterations) + ' iterations, '+str(int(time.time())))
+                       title='CNN gamma history, ' + str(num_iterations) + ' iterations, ' + str(int(time.time())))
         fig2.write_html("CNN_gamma_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
 
     plt.show()
