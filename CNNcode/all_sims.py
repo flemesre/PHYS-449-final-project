@@ -548,9 +548,11 @@ def regularizer(weights, alpha):
     Lasso = torch.zeros((1)).to(device)
     for i in range(3):
         layer_i = weights[f"fc_layers.{2*i}.weight"]
-        for j in range(layer_i.shape[0]):
-            for k in range(layer_i.shape[1]):
-                Lasso += torch.sum(torch.sqrt(torch.pow(layer_i[j][k], 2)))
+        # for j in range(layer_i.shape[0]):
+        #     for k in range(layer_i.shape[1]):
+        #         Lasso += torch.sum(torch.sqrt(torch.pow(layer_i[j][k], 2)))
+        Lasso += torch.sum(torch.sqrt(torch.pow(layer_i, 2)))
+
 
     L_reg = conv_L2 + fc_L1 + Lasso
 
