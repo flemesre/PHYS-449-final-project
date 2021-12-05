@@ -697,12 +697,59 @@ if __name__ == '__main__':
             start = time.time()
         sys.exit()
 
-    if load_model:
-        model = CNN_skip()
-        model.load_state_dict(torch.load('CNN_itr5001time1637333485.pt'))
+        if load_model:
+        sims = [1, 2]
+        training_list = [1]
+        test_sim = 2  # which simulation is used for testing
+
+        halo_mass = get_halo_mass(sims)
+        sim_list, train_num_particles = get_sim_list(sims)
+        _3d_den, norm_halo_mass = data_processing(sims)
+
+        # initialize dataloader
+        train_dataset = TrainingDataset()
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=Batch_size, shuffle=True)
+        # test_dataset = TestingDataset()
+        # test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=test_num, shuffle=False)
+
+        model = CNN().to(device)
+        # model.load_state_dict(torch.load('gamma not trained/CNN_itr25001time1637291580.pt'))
+        model.load_state_dict(torch.load('CNN_itr1001time1638685722.pt'))
         model.eval()
-        print(model.gamma)
+        # print(model.gamma)
+
+        pred_mass_history = []
+        true_mass_history = []
+        with torch.no_grad():
+            for test_batch, (_x, _y) in enumerate(train_dataloader):
+                torch.cuda.empty_cache()
+                # print(_x.shape)
+                # print(_y.shape)
+                # print(torch.unsqueeze(_y, 1).shape)
+                # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
+                predicted_mass = model(_x.to(device))
+                test_loss = custom_loss_fcn(model, torch.unsqueeze(_y, 1).to(device), predicted_mass)
+                # print(f"batch = {test_batch}   predicted mass ={predicted_mass[:,0]}   true mass = {_y}   test_loss = {test_loss}")
+                if test_batch % 10 == 0:
+                    print(f"batch = {test_batch}")
+
+                for pred_mass in predicted_mass[:, 0]:
+                    pred_mass_history.append(pred_mass.detach().cpu())
+                for tru_mass in _y:
+                    true_mass_history.append(tru_mass.detach().cpu())
+                if test_batch == 500:
+                    # plt.plot(range(808),pred_mass_history,'o',label='predicted mass')
+                    # plt.plot(range(808),true_mass_history,'o',label='true mass')
+                    plt.plot(true_mass_history, pred_mass_history, 'o')
+                    # plt.legend(loc='best')
+                    plt.xlabel('True mass')
+                    plt.ylabel('Predicted mass')
+                    plt.savefig("more_CNN_performance_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
+                    plt.show()
+                    sys.exit()
+
         sys.exit()
+        
     # initial NN and optimizer
     model = CNN().to(device)  # VAE(10,device)#.to(device)#CNN_skip().to(device)
     # loss_fcn = nn.MSELoss()
