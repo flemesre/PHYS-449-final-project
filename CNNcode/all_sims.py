@@ -697,7 +697,7 @@ if __name__ == '__main__':
             start = time.time()
         sys.exit()
 
-        if load_model:
+    if load_model:
         sims = [1, 2]
         training_list = [1]
         test_sim = 2  # which simulation is used for testing
