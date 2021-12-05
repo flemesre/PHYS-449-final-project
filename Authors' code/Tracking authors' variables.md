@@ -1,3 +1,20 @@
+# Authors' hyperparameters
+
+In the final version, alpha is not trained?
+
+line 422 of `CNN.py`
+```
+if self.init_alpha is not None:
+            # Create a trainable parameter for alpha in the weights priors terms (or, regularizers terms)
+```
+`self.init_alpha = init_alpha` and `init_alpha=None` by default
+
+## super expontential function
+See line 179 of `dlhalos_code/loss_functions.py`, `function_outside_boundary`
+```
+K.exp(K.exp(y_boundary * y_pred)) + alpha * K.square(y_pred) + beta
+```
+
 # Where is the 256^3 density field?
 
 ## self.prepare_sim
