@@ -214,9 +214,9 @@ class CNN(nn.Module):
 
         self.beta = 0.03 # Leaky ReLU coeff
 
-        self.gamma = nn.Parameter(torch.tensor(1.0)) # gamma in Cauchy loss # gamma in Cauchy loss
+        self.gamma = nn.Parameter(torch.tensor(0.2)) # gamma in Cauchy loss # gamma in Cauchy loss
 
-        self.alpha = torch.tensor(1.0) # Regularization coefficient
+        self.alpha = torch.tensor(10**float(-2.5)) # Regularization coefficient
 
         self.conv_layers = nn.Sequential(
             # 1st conv layer
