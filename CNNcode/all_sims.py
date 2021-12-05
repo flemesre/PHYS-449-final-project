@@ -301,10 +301,9 @@ class CNN(nn.Module):
 
     def forward(self, initial_den_field):
         """
-            DESCRIPTION:
-            INPUTS:
-            OUTPUTS:
-
+            DESCRIPTION: Forward pass of the network.
+            INPUTS: Initial density field subbox centered around test particle.
+            OUTPUTS: Predicted log halo mass to which test particle belongs. (Rescaled to lie within [-1, 1])
         """
 
         conv_output = self.conv_layers(initial_den_field)
@@ -749,7 +748,7 @@ if __name__ == '__main__':
                     sys.exit()
 
         sys.exit()
-        
+
     # initial NN and optimizer
     model = CNN().to(device)  # VAE(10,device)#.to(device)#CNN_skip().to(device)
     # loss_fcn = nn.MSELoss()
