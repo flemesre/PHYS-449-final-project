@@ -189,15 +189,14 @@ class TestingDataset(torch.utils.data.Dataset):
     def __getitem__(self, raw_idx):
         # idx is the index in the reduced dataset, after the particles have been screened
         # J is the index in the original dataset
-        idx = self.test_indices[raw_idx]  # raw_idx goes from 0 to test_num - 1
-        J = sim_list[sims.index(test_sim)][idx]  # index in original, unscreened dataset
+        idx = self.test_indices[raw_idx] # raw_idx goes from 0 to test_num - 1
+        J = sim_list[sims.index(test_sim)][idx] # index in original, unscreened dataset
 
         i0, j0, k0 = coords[J, 0] + subbox_pad, coords[J, 1] + subbox_pad, coords[J, 2] + subbox_pad
         subbox = _3d_den[sims.index(test_sim)][i0 - subbox_pad:i0 + subbox_pad + 1,
                  j0 - subbox_pad:j0 + subbox_pad + 1, k0 - subbox_pad:k0 + subbox_pad + 1]
         input_data = subbox.to(device0, dtype=torch.float32)
         return torch.unsqueeze(input_data, 0), self.output_data[raw_idx]
-
 
 class CNN(nn.Module):
     def __init__(self):
@@ -215,9 +214,9 @@ class CNN(nn.Module):
 
         self.beta = 0.03 # Leaky ReLU coeff
 
-        self.gamma = nn.Parameter(torch.tensor(1.0))  # gamma in Cauchy loss # gamma in Cauchy loss
+        self.gamma = nn.Parameter(torch.tensor(1.0)) # gamma in Cauchy loss # gamma in Cauchy loss
 
-        self.alpha = nn.Parameter(torch.tensor(1.0))  # Regularization coefficient
+        self.alpha = torch.tensor(1.0) # Regularization coefficient
 
         self.conv_layers = nn.Sequential(
             # 1st conv layer
@@ -276,6 +275,7 @@ class CNN(nn.Module):
 
         self.conv_layers.apply(initialize_weights)
         self.fc_layers.apply(initialize_weights)
+
 
     def forward(self, initial_den_field):
         conv_output = self.conv_layers(initial_den_field)
@@ -403,11 +403,10 @@ class CNN_skip(nn.Module):
 
 
 class VAE(torch.nn.Module):
-    def __init__(self, device):
+    def __init__(self, n_latent, device):
         super(VAE, self).__init__()
         self.device = device
         self.beta = 0.03  # Leaky ReLU coefficient
-        self.n_latent = 10  # dimension of latent space
 
         # Encoder layers
         self.encoder = nn.Sequential().to(self.device)
@@ -434,9 +433,9 @@ class VAE(torch.nn.Module):
 
         # Latent layers
         self.fc1 = nn.Linear(128, 128).to(self.device)
-        self.fc1_1 = nn.Linear(128, self.n_latent).to(self.device)  # mu
-        self.fc1_2 = nn.Linear(128, self.n_latent).to(self.device)  # sigma
-        self.fc2 = nn.Linear(self.n_latent, 196).to(self.device)
+        self.fc1_1 = nn.Linear(128, n_latent).to(self.device)  # mu
+        self.fc1_2 = nn.Linear(128, n_latent).to(self.device)  # sigma
+        self.fc2 = nn.Linear(n_latent, 196).to(self.device)
 
         # Decoder layers
         self.decoder = nn.Sequential().to(self.device)
@@ -510,7 +509,7 @@ def super_exp(tensor1):
         -- super_exp -- tensor raised to e^e^x per the paper
     '''
 
-    exp_part = torch.exp(tensor1)
+    exp_part =torch.exp(tensor1)
     super_exp = torch.exp(exp_part)
 
     return super_exp
@@ -522,7 +521,6 @@ def custom_loss_fcn(MODEL, tensor1, tensor2):
     before_avging = torch.log(MODEL.gamma) + torch.log(thing_inside_ln) + torch.log(other_thing)
 
     return torch.mean(before_avging)
-
 
 def regularizer(weights, alpha):
     '''
@@ -558,8 +556,7 @@ def regularizer(weights, alpha):
 
     return alpha * L_reg
 
-
-def Heaviside_regularizer(input_loss, super_exp, tensor2):
+def Heaviside_regularizer(input_loss,super_exp,tensor2):
     '''
         Input:
             -- input_loss -- loss computed by equation 5 of original paper. Tensor.
@@ -572,10 +569,9 @@ def Heaviside_regularizer(input_loss, super_exp, tensor2):
             added, a tensor.
 
     '''
-
     zeros = torch.zeros_like(tensor2)
-    first_term = input_loss*torch.heaviside((torch.abs(tensor2)+1), zeros)
-    second_term = super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1, zeros)
+    first_term = input_loss*torch.heaviside((torch.abs(tensor2)+1),zeros)
+    second_term = super_exp(tensor2)*torch.heaviside(torch.abs(tensor2)-1,zeros)
     avg_term = torch.mean(first_term+second_term)
 
     return avg_term  # L-pred
