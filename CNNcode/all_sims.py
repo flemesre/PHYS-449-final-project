@@ -352,7 +352,7 @@ class CNN_skip(nn.Module):
 
         self.beta = 0.03  # Leaky ReLU coeff
 
-        self.gamma = nn.Parameter(torch.tensor(1.0))  # gamma in Cauchy loss
+        self.gamma = nn.Parameter(torch.tensor(0.2))  # gamma in Cauchy loss
 
         # 1st conv layer --- (,1) ---> (,32)
         self.conv1 = nn.Conv3d(1, self.conv_layer1_kernels, (3, 3, 3), stride=1, padding=(1, 1, 1),
