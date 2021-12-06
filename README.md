@@ -14,3 +14,4 @@ DATA: https://console.cloud.google.com/storage/browser/deep-halos-data;tab=objec
 
 GitHub: https://github.com/lluciesmith/DeepHalos
 
+Inference+plots of our own: https://uofwaterloo-my.sharepoint.com/:f:/r/personal/tsfraser_uwaterloo_ca/Documents/Plots449?csf=1&web=1&e=yXH39o
