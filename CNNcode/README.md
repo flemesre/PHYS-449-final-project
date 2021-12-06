@@ -6,7 +6,7 @@
 Or download all files and use `all_sims.py` after following step 2.
 
 ## 2
-run `load_data_from_pynbod2y.py` to convert pynbody files into things numpy/pytorch can recognize
+run `load_data_from_pynbod2y.py` in Data pre-processing to convert pynbody files into things numpy/pytorch can recognize
 - note that you will need to change `path` depending on your local machine
 - it takes a few minutes to create the 3d_den_pad files
 
