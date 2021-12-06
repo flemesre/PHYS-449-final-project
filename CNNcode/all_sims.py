@@ -3,7 +3,7 @@ import torch, random, time
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
-import argparse, sys
+import argparse, sys, json
 
 
 def get_halo_mass(sims):
@@ -643,6 +643,7 @@ def Heaviside_regularizer(input_loss, tensor2):
 if __name__ == "__main__":
     # change the path to where you store the files on the local machine
     path = ""
+    params = json.load(open("params.json"))  # load parameters from file
 
     # device for loading and processing the tensor data
     device0 = "cuda" if torch.cuda.is_available() else "cpu"
@@ -655,15 +656,18 @@ if __name__ == "__main__":
     subbox_pad = subbox_length // 2  # expand the density field by this amount on each side to emulate cyclic BC
     num_particles = sim_length ** 3
 
-    log_low_mass_limit = 11
-    log_high_mass_limit = 13.4
+    log_low_mass_limit = params["data_params"]["log_low_mass_limit"]  # 11
+    log_high_mass_limit = params["data_params"]["log_high_mass_limit"]  # 13.4
 
-    Batch_size = 8  # 64 in the paper
-    test_num = 8  # number of particles used in testing
+    Batch_size = params["hyperparams"]["batch_size"]  # 64 in the paper
+    test_num = params["hyperparams"]["test_num"]  # number of particles used in testing
+    # Batch_size = 8  # 64 in the paper
+    # test_num = 8  # number of particles used in testing
 
-    learning_rate = 5e-5  # author"s number 0.00005
-    num_iterations = 1001
-    save_model = True
+    learning_rate = params["hyperparams"]["learning_rate"]  # author"s number 0.00005
+    num_iterations = params["hyperparams"]["num_iterations"]
+    # num_iterations = 5001  # for quick testing
+    save_model = params["hyperparams"]["save_model"]  # true/false
 
     # prepare coords
     iord = range(sim_length ** 3)
@@ -675,7 +679,7 @@ if __name__ == "__main__":
     test_sim = 7  # which simulation is used for testing
 
     debug_dataloader = False
-    load_model = True
+    load_model = False
     model_to_load = "CNN_itr1001time1638771835.pt"  # path to .pt file of model to be loaded
     num_inference_iterations = 500  # number of batches to perform inference on
     plot_with_plotly = False
