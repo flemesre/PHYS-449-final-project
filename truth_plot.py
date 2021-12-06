@@ -27,4 +27,5 @@ if __name__ == '__main__':
 
     pred_data,truth_data= load_truth_pred(prefix)
     f,ax = plot_violin(truth_data,pred_data)
+    plt.savefig('BasicModelCNN.png')
     plt.show()
