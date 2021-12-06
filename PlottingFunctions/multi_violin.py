@@ -6,14 +6,31 @@ from utilss import plot_violins as pv
 from utilss import plots_for_predictions as pp
 from utilss import predictions_functions as pf
 
+data_path = '/Users/tristanfraser/batchsize_8/'
+folder = ['stoppingat_5001','stoppingat_15001','stoppingat_25001','all_35001_iterations']
+list_of_suffixes= ['time1638718250.pt.npy','time1638718250.pt.npy',\
+                   'time1638721773.pt.npy','time1638721773.pt.npy',\
+                   'time1638725311.pt.npy','time1638725311.pt.npy',\
+                   'time1638728894.pt.npy','time1638728894.pt.npy']
+for i in range(4):
+    if i <3:
+        model_truth_name = 'true_masses_batch_size_8_CNN_at'+str(5000+1+i*10000)+'_itr35001'+list_of_suffixes[2*i]
+        model_pred_name = 'pred_masses_batch_size_8_CNN_at'+str(5000+1+i*10000)+'_itr35001'+list_of_suffixes[2*i+1]
+    else:
+        model_truth_name = 'true_masses_batch_size_8_CNN'+'_itr35001'+list_of_suffixes[2*i]
+        model_pred_name = 'pred_masses_batch_size_8_CNN'+'_itr35001'+list_of_suffixes[2*i+1]
+    truth = 1.2*(np.load(data_path+folder[i]+'/'+model_truth_name)+1)+11
+#truth_2 = 1.2*np.load('true_masses_CNN_at15001_itr35001time1638743989.npy')+11
+#truth_3 = 1.2*np.load('true_masses_CNN_at25001_itr35001time1638747686.npy')+11
 
-truth_1 = 1.2*np.load('true_masses_CNN_at5001_itr35001time1638740279.npy')+11
-truth_2 = 1.2*np.load('true_masses_CNN_at15001_itr35001time1638743989.npy')+11
-truth_3 = 1.2*np.load('true_masses_CNN_at25001_itr35001time1638747686.npy')+11
+    pred = 1.2*(np.load(data_path+folder[i]+'/'+model_pred_name)+1)+11
 
-pred_1 = 1.2*np.load('pred_masses_CNN_at5001_itr35001time1638740279.npy')+11
-pred_2 = 1.2*np.load('pred_masses_CNN_at15001_itr35001time1638743989.npy')+11
-pred_3 = 1.2*np.load('pred_masses_CNN_at25001_itr35001time1638747686.npy')+11
+    pv.plot_violin(pred,truth, bins_violin=None,
+                    return_stats=None, box=False, alpha=0.5, vert=True, col="C0", figsize=(8, 8))#bins_violin=None,return_states =None,col= 'C0', figsize=(8, 8))
+    #plt.legend()
+    plt.savefig(folder[i]+'plots.png')
+#pred_2 = 1.2*np.load('pred_masses_CNN_at15001_itr35001time1638743989.npy')+11
+#pred_3 = 1.2*np.load('pred_masses_CNN_at25001_itr35001time1638747686.npy')+11
 
 def get_distributions_for_three_violin_plots(predicted1, true1, predicted2, true2, predicted3, true3, bins, return_stats="median"):
     distr_pred1, distr_mean1 = pf.get_predicted_masses_in_each_true_m_bin(bins, predicted1, true1,
@@ -33,14 +50,10 @@ def three_violin_plot(distr_pred1, distr_mean1, distr_pred2, distr_mean2, distr_
                     alpha1=0.3, edge1='black', alpha2=0.3, edge2='black',alpha3 = 0.3,edge3 = 'black'):
 
 
-#    new_textsize = figsize[0] / (6.9 / 17)
-#    new_labelsize = figsize[0] / (6.9 / 22)
-#    new_ticksize = figsize[0] / (6.9 / 18)
-#    mpl.rcParams['ytick.labelsize'] = new_ticksize
-#    mpl.rcParams['xtick.labelsize'] = new_ticksize
+
 
     width_xbins = np.diff(bins)[0]
-    print(width_xbins.shape)
+    #print(width_xbins.shape)
     xaxis = (bins[:-1] + bins[1:]) / 2
     xaxis_median = pf.get_median_true_distribution_in_bins(truth, bins, return_stats="median")
 
@@ -101,7 +114,7 @@ def three_violin_plot(distr_pred1, distr_mean1, distr_pred2, distr_mean2, distr_
 
     axes.set_xlabel(r"$\log (M_\mathrm{true}/\mathrm{M}_{\odot})$")
     axes.set_ylabel(r"$\log (M_\mathrm{predicted}/\mathrm{M}_{\odot})$")
-    axes.legend(loc="best", framealpha=1.)
+    #axes.legend(loc="best", framealpha=1.)
     plt.subplots_adjust(bottom=0.14, left=0.1)
     if title is not None:
         plt.title(title)
@@ -130,27 +143,3 @@ def compare_three_violin_plots(predicted1, true1, predicted2, true2, predicted3,
     return f, ax
 
 
-bins = np.linspace(11,12.5,13)
-plt.hist([pred_3],bins=bins,histtype ='bar',color='red',alpha=0.3)
-plt.hist([truth_3],bins=bins,histtype ='step',color='red',alpha=0.3,lw=2)
-plt.hist([pred_2],bins=bins,histtype ='bar',color='blue',alpha=0.3)
-plt.hist([truth_2],bins=bins,histtype ='step',color='blue',alpha=0.3,lw=2)
-#plt.hist([pred_3],bins=bins,histtype ='bar',color='green',alpha=0.3)
-##plt.hist([truth_3],bins=bins,histtype ='step',color='green',alpha=0.3,lw=2)
-plt.show()
-pv.plot_violin(pred_1,truth_1,labels ='5000 iterations')
-plt.legend()
-plt.show()
-pv.plot_violin(pred_2,truth_2,labels ='15000 iterations')
-plt.legend()
-plt.show()
-pv.plot_violin(pred_3,truth_3,labels ='25000 iterations')
-plt.legend()
-plt.show()
-f,ax = pf.compare_two_violin_plots(pred_2,truth_2,pred_3,truth_3, bins = bins,label1="15k iters", label2="25k iters",
-                             return_stats=None,alpha1=0.4,alpha2=0.4)
-#fig,ax = plt.subplots(1,1,figsize= (10,10))
-#pv.plot_violin(truth_1,pred_1,bins_violin=None,return_stats =None,figsize =(10,10),col="C0")
-#pv.plot_violin(truth_2,pred_2,bins_violin=None,return_stats =None,figsize =(10,10))
-#pv.plot_violin(truth_3,pred_3,bins_violin=None,return_stats =None,figsize =(10,10))
-plt.show()
