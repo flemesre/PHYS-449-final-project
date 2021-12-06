@@ -10,18 +10,10 @@ run `load_data_from_pynbod2y.py` in Data pre-processing to convert pynbody files
 - note that you will need to change `path` depending on your local machine
 - it takes a few minutes to create the 3d_den_pad files
 
-## 3
-run `dataloader_with_NN.py` to do the data processing, dataloading, and to train the CNN
-- runs on `'cuda'` by default
-- on `'cpu'`: the first iteration takes around 30 seconds, each subsequent iteration takes around 1 min
-- on `'cuda'`: each iteration takes around 0.015 to 0.03 seconds
-
 ## Notes
 - To run on cuda, the batch size is reduced to 10
-- How are the biases initialized? How is gamma initialized?
-- Cauchy loss partly implemented (missing the Heaviside/restrict to [-1,1] part)
+- Cauchy loss implemented
 - More testing, especially on the other simulations
-- Setting both `device` and `device0` to `'cuda'` is recommended (~500 batches per second, batch size = 64)
 
 ## Shortcuts
 (Cyrus: This is only meant for my machine)
