@@ -10,9 +10,9 @@ def get_halo_mass(sims):
     HALO_mass = []
     for sim_index in sims:
         # loading halo masses
-        halo_mass0 = np.load(path + 'full-data_reseed' + str(sim_index)
-                             + '_simulation_reseed' + str(sim_index) + '_halo_mass_particles.npy')
-        print('Loaded halo mass ' + str(sim_index))
+        halo_mass0 = np.load(path + "full-data_reseed" + str(sim_index)
+                             + "_simulation_reseed" + str(sim_index) + "_halo_mass_particles.npy")
+        print("Loaded halo mass " + str(sim_index))
         print()
         HALO_mass.append(halo_mass0)
     return HALO_mass
@@ -25,11 +25,11 @@ def get_sim_list(sims):
         # sim_1_list.npy contains the indices of the particles that fall within the mass range
         try:
             print("Attempting to load sim_" + str(sim_index) + "_list.npy")
-            sim_1_list = np.load(path + 'sim_' + str(sim_index) + '_list.npy')
+            sim_1_list = np.load(path + "sim_" + str(sim_index) + "_list.npy")
             print("Loaded the list of training particles in simulation " + str(sim_index))
 
         except OSError:  # FileNotFoundError
-            print('sim_' + str(sim_index) + '_list.npy not found, creating sim_' + str(sim_index) + '_list.npy')
+            print("sim_" + str(sim_index) + "_list.npy not found, creating sim_" + str(sim_index) + "_list.npy")
             sim_1_list0 = []
             for i in range(num_particles):
                 if halo_mass[sims.index(sim_index)][i] > 1:
@@ -40,8 +40,8 @@ def get_sim_list(sims):
                     print(f"{i} particles processed")
 
             sim_1_list = np.array(sim_1_list0)
-            np.save(path + 'sim_' + str(sim_index) + '_list.npy', sim_1_list)
-            print('sim_' + str(sim_index) + '_list.npy created')
+            np.save(path + "sim_" + str(sim_index) + "_list.npy", sim_1_list)
+            print("sim_" + str(sim_index) + "_list.npy created")
         print()
 
         test_num_particles0 = sim_1_list.size
@@ -61,12 +61,12 @@ def data_processing(index):
     for sim_index in sims:
         try:
             print("Attempting to load 3d_den_pad" + str(sim_index) + ".pt")
-            _3d_den_pad = torch.load(path + '3d_den_pad' + str(sim_index) + '.pt').to(device0)
+            _3d_den_pad = torch.load(path + "3d_den_pad" + str(sim_index) + ".pt").to(device0)
             print("Loaded initial density field " + str(sim_index))
 
         except OSError:  # FileNotFoundError
-            print('3d_den_pad' + str(sim_index) + '.pt not found, creating 3d_den_pad' + str(sim_index) + '.pt')
-            den_contrast = torch.tensor(np.load(path + 'den_contrast_' + str(sim_index) + '.npy')).to(device0)
+            print("3d_den_pad" + str(sim_index) + ".pt not found, creating 3d_den_pad" + str(sim_index) + ".pt")
+            den_contrast = torch.tensor(np.load(path + "den_contrast_" + str(sim_index) + ".npy")).to(device0)
 
             # normalization: set mean = 0, sd = 1
             norm_den_contrast = (den_contrast - torch.mean(den_contrast)) / torch.std(den_contrast)
@@ -86,19 +86,19 @@ def data_processing(index):
                 if i % 2 == 0:
                     print(f"{i + 1} out of {pad_den_size} slices completed")
 
-            torch.save(_3d_den_pad, path + '3d_den_pad' + str(sim_index) + '.pt')
-            print('3d_den_pad' + str(sim_index) + '.py created')
+            torch.save(_3d_den_pad, path + "3d_den_pad" + str(sim_index) + ".pt")
+            print("3d_den_pad" + str(sim_index) + ".py created")
         print()
         _3d_DEN.append(_3d_den_pad)
 
         try:
             print("Attempting to load norm_halo_mass" + str(sim_index) + ".npt")
-            norm_halo_mass0 = torch.load(path + 'norm_halo_mass' + str(sim_index) + '.npt').to(device0)
+            norm_halo_mass0 = torch.load(path + "norm_halo_mass" + str(sim_index) + ".npt").to(device0)
             print("Loaded the normalized halo masses " + str(sim_index))
 
         except OSError:  # FileNotFoundError
-            print('norm_halo_mass' + str(sim_index) + '.npy not found, creating norm_halo_mass'
-                  + str(sim_index) + '.npt')
+            print("norm_halo_mass" + str(sim_index) + ".npy not found, creating norm_halo_mass"
+                  + str(sim_index) + ".npt")
             # creating restricted_halo_mass, which uses the log mass
             # removing the particles in halo_mass that are outside of the mass range
             restricted_halo_mass = torch.tensor(np.zeros(train_num_particles[sims.index(sim_index)])).to(device0)
@@ -113,8 +113,8 @@ def data_processing(index):
             norm_halo_mass0 = restricted_halo_mass - min_mass - (max_mass - min_mass) / 2
             norm_halo_mass0 = norm_halo_mass0 * (2 / (max_mass - min_mass))
 
-            torch.save(norm_halo_mass0, path + 'norm_halo_mass' + str(sim_index) + '.npt')
-            print('norm_halo_mass' + str(sim_index) + '.npt created')
+            torch.save(norm_halo_mass0, path + "norm_halo_mass" + str(sim_index) + ".npt")
+            print("norm_halo_mass" + str(sim_index) + ".npt created")
 
         print()
         NORM_halo_mass.append(norm_halo_mass0)
@@ -240,36 +240,36 @@ class CNN(nn.Module):
         self.conv_layers = nn.Sequential(
             # 1st conv layer
             nn.Conv3d(1, self.conv_layer1_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+                      stride=1, padding=(1, 1, 1), padding_mode="zeros"),
             nn.LeakyReLU(negative_slope=self.beta),
 
             # 2nd conv layer
             nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+                      stride=1, padding=(1, 1, 1), padding_mode="zeros"),
             nn.MaxPool3d((2, 2, 2)),
             nn.LeakyReLU(negative_slope=self.beta),
 
             # 3rd conv layer
             nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+                      stride=1, padding=(1, 1, 1), padding_mode="zeros"),
             nn.MaxPool3d((2, 2, 2)),
             nn.LeakyReLU(negative_slope=self.beta),
 
             # 4th conv layer
             nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+                      stride=1, padding=(1, 1, 1), padding_mode="zeros"),
             nn.MaxPool3d((2, 2, 2)),
             nn.LeakyReLU(negative_slope=self.beta),
 
             # 5th conv layer
             nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+                      stride=1, padding=(1, 1, 1), padding_mode="zeros"),
             nn.MaxPool3d((2, 2, 2)),
             nn.LeakyReLU(negative_slope=self.beta),
 
             # 6th conv layer
             nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
-                      stride=1, padding=(1, 1, 1), padding_mode='zeros'),
+                      stride=1, padding=(1, 1, 1), padding_mode="zeros"),
             nn.MaxPool3d((2, 2, 2)),
             nn.LeakyReLU(negative_slope=self.beta),
         )
@@ -356,31 +356,31 @@ class CNN_skip(nn.Module):
 
         # 1st conv layer --- (,1) ---> (,32)
         self.conv1 = nn.Conv3d(1, self.conv_layer1_kernels, (3, 3, 3), stride=1, padding=(1, 1, 1),
-                               padding_mode='zeros')
+                               padding_mode="zeros")
 
         # 2nd conv layer --- (,32) ---> (,32)
         self.conv2 = nn.Conv3d(self.conv_layer1_kernels, self.conv_layer2_kernels, (3, 3, 3),
-                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
+                               stride=1, padding=(1, 1, 1), padding_mode="zeros")
         self.pool1 = nn.MaxPool3d((2, 2, 2))  # (,32) ---> (,32)
 
         # 3rd conv layer --- (,32) ---> (,64)
         self.conv3 = nn.Conv3d(self.conv_layer2_kernels, self.conv_layer3_kernels, (3, 3, 3),
-                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
+                               stride=1, padding=(1, 1, 1), padding_mode="zeros")
         self.pool2 = nn.MaxPool3d((2, 2, 2))
 
         # 4th conv layer --- (,64) ---> (,64)
         self.conv4 = nn.Conv3d(self.conv_layer3_kernels, self.conv_layer4_kernels, (3, 3, 3),
-                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
+                               stride=1, padding=(1, 1, 1), padding_mode="zeros")
         self.pool3 = nn.MaxPool3d((2, 2, 2))  # (,64) ---> (,64)
 
         # 5th conv layer --- (,64) ---> (,128)
         self.conv5 = nn.Conv3d(self.conv_layer4_kernels, self.conv_layer5_kernels, (3, 3, 3),
-                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
+                               stride=1, padding=(1, 1, 1), padding_mode="zeros")
         self.pool4 = nn.MaxPool3d((2, 2, 2))  # (,128)---> (,128)
 
         # 6th conv layer --- (,128) ---> (,128)
         self.conv6 = nn.Conv3d(self.conv_layer5_kernels, self.conv_layer6_kernels, (3, 3, 3),
-                               stride=1, padding=(1, 1, 1), padding_mode='zeros')
+                               stride=1, padding=(1, 1, 1), padding_mode="zeros")
         self.pool5 = nn.MaxPool3d((2, 2, 2))  # (,128) ---> (,128)
 
         # START OF FC LAYER STACK
@@ -428,22 +428,22 @@ class CNN_skip(nn.Module):
         p1 = self.pool1(c2 + c1)  #
         # print(c1.shape,c2.shape)
         c3 = m(self.conv3(p1))  # (,64)
-        # print(c3.shape,'C3')
+        # print(c3.shape,"C3")
         p2 = self.pool2(c3)  # (,64)
-        # print(p2.shape,'P2')
+        # print(p2.shape,"P2")
         c4 = m(self.conv4(p2))  # (, 64)
-        # print(c4.shape,'C4')
+        # print(c4.shape,"C4")
         p3 = self.pool3(c4)  # (,64)
-        # print(p3.shape,'P3')
+        # print(p3.shape,"P3")
         c5 = m(self.conv5(p3))  # (,128)
-        # print(c5.shape,'C5')
+        # print(c5.shape,"C5")
         p4 = self.pool4(c5 + p3)  # (,128)
-        # print(p4.shape,'P4')
+        # print(p4.shape,"P4")
 
         c6 = m(self.conv6(p4))  # (,128)
-        # print(c6.shape,'C6')
+        # print(c6.shape,"C6")
         p5 = self.pool5(c6 + p4)  # (,128)
-        # print(p5.shape,'P5')
+        # print(p5.shape,"P5")
         # Skip connections: c1+c2 --> p1
         #                   p3+c5 --> p4
         #                   p4+c6 --> p5
@@ -469,21 +469,21 @@ class VAE(torch.nn.Module):
         self.encoder = nn.Sequential().to(self.device)
         self.encoder.add_module("e_dropout", nn.Dropout(0.2))
         print(self.encoder)
-        self.encoder.add_module("e_conv1", nn.Conv3d(1, 32, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("e_conv1", nn.Conv3d(1, 32, (3, 3, 3), stride=1, padding=1, padding_mode="zeros"))
         self.encoder.add_module("e_activation1", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv2", nn.Conv3d(32, 32, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("e_conv2", nn.Conv3d(32, 32, (3, 3, 3), stride=1, padding=1, padding_mode="zeros"))
         self.encoder.add_module("pool1", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation2", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv3", nn.Conv3d(32, 64, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("e_conv3", nn.Conv3d(32, 64, (3, 3, 3), stride=1, padding=1, padding_mode="zeros"))
         self.encoder.add_module("pool2", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation3", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv4", nn.Conv3d(64, 128, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("e_conv4", nn.Conv3d(64, 128, (3, 3, 3), stride=1, padding=1, padding_mode="zeros"))
         self.encoder.add_module("pool3", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation4", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv5", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("e_conv5", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1, padding_mode="zeros"))
         self.encoder.add_module("pool4", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation5", nn.LeakyReLU(negative_slope=self.beta))
-        self.encoder.add_module("e_conv6", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1, padding_mode='zeros'))
+        self.encoder.add_module("e_conv6", nn.Conv3d(128, 128, (3, 3, 3), stride=1, padding=1, padding_mode="zeros"))
         self.encoder.add_module("pool5", nn.MaxPool3d(2, 2, 2))
         self.encoder.add_module("e_activation6", nn.LeakyReLU(negative_slope=self.beta))
         self.encoder.add_module("e_flatten", nn.Flatten())
@@ -530,7 +530,7 @@ class VAE(torch.nn.Module):
 
     # encoder function, mnist data to compressed latent space (mu and sigma)
     def encode(self, x):
-        print(x.shape, 'INPUT')
+        print(x.shape, "INPUT")
         x = self.encoder(x.to(self.device)).to(self.device)
         print(x.shape)
         mu = self.fc1_1(self.fc1(x.to(self.device))).to(self.device)
@@ -550,7 +550,7 @@ class VAE(torch.nn.Module):
         return mean + sigma * epsilon
 
     def forward(self, x):
-        print('FWD step')
+        print("FWD step")
         print(x.shape)
         mu, logvariance = self.encode(x.to(self.device))
         print(mu.shape)
@@ -577,7 +577,7 @@ def custom_loss_fcn(MODEL, tensor1, tensor2):
     d_max = 1
     d_min = -1
     thing_inside_ln = 1 + ((tensor1 - tensor2) / MODEL.gamma) ** 2
-    other_thing =  torch.atan((d_max - tensor2) / MODEL.gamma) - torch.atan(
+    other_thing = torch.atan((d_max - tensor2) / MODEL.gamma) - torch.atan(
          (d_min - tensor2) / MODEL.gamma)
     before_avging = torch.log(MODEL.gamma) + torch.log(thing_inside_ln) + torch.log(other_thing)
 
@@ -640,9 +640,9 @@ def Heaviside_regularizer(input_loss, tensor2):
     return avg_term  # L-pred
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # change the path to where you store the files on the local machine
-    path = ''
+    path = ""
 
     # device for loading and processing the tensor data
     device0 = "cuda" if torch.cuda.is_available() else "cpu"
@@ -661,8 +661,8 @@ if __name__ == '__main__':
     Batch_size = 8  # 64 in the paper
     test_num = 8  # number of particles used in testing
 
-    learning_rate = 5e-5  # author's number 0.00005
-    num_iterations = 5001
+    learning_rate = 5e-5  # author"s number 0.00005
+    num_iterations = 1001
     save_model = True
 
     # prepare coords
@@ -670,12 +670,14 @@ if __name__ == '__main__':
     i, j, k = np.unravel_index(iord, (sim_length, sim_length, sim_length))
     coords = np.column_stack((i, j, k))
 
-    sims = [1, 2]  # [1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-    training_list = [1]  # [2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-    test_sim = 2  # which simulation is used for testing
+    sims = [1, 2, 4, 5, 6, 7]  # [1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+    training_list = [1, 2, 4, 5, 6]  # [2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+    test_sim = 7  # which simulation is used for testing
 
     debug_dataloader = False
-    load_model = False
+    load_model = True
+    model_to_load = "CNN_itr1001time1638771835.pt"  # path to .pt file of model to be loaded
+    num_inference_iterations = 500  # number of batches to perform inference on
     plot_with_plotly = False
 
     halo_mass = get_halo_mass(sims)
@@ -712,14 +714,15 @@ if __name__ == '__main__':
         # test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=test_num, shuffle=False)
 
         model = CNN().to(device)
-        # model.load_state_dict(torch.load('gamma not trained/CNN_itr25001time1637291580.pt'))
-        model.load_state_dict(torch.load('CNN_itr1001time1638685722.pt'))
+        # model.load_state_dict(torch.load("gamma not trained/CNN_itr25001time1637291580.pt"))
+        model.load_state_dict(torch.load(model_to_load))
         model.eval()
         # print(model.gamma)
 
         pred_mass_history = []
         true_mass_history = []
         with torch.no_grad():
+            batch_start = time.time()
             for test_batch, (_x, _y) in enumerate(train_dataloader):
                 torch.cuda.empty_cache()
                 # print(_x.shape)
@@ -728,22 +731,24 @@ if __name__ == '__main__':
                 # test_loss = loss_fcn(model(_x.to(device)), torch.unsqueeze(_y, 1).to(device))
                 predicted_mass = model(_x.to(device))
                 test_loss = custom_loss_fcn(model, torch.unsqueeze(_y, 1).to(device), predicted_mass)
-                # print(f"batch = {test_batch}   predicted mass ={predicted_mass[:,0]}   true mass = {_y}   test_loss = {test_loss}")
                 if test_batch % 10 == 0:
-                    print(f"batch = {test_batch}")
+                    batch_end = time.time()  # time to compute 10 batches
+                    print(f"Batch {test_batch} processed \t|\t time = {batch_end - batch_start}")
+                    batch_start = time.time()
 
                 for pred_mass in predicted_mass[:, 0]:
                     pred_mass_history.append(pred_mass.detach().cpu())
                 for tru_mass in _y:
                     true_mass_history.append(tru_mass.detach().cpu())
-                if test_batch == 500:
-                    # plt.plot(range(808),pred_mass_history,'o',label='predicted mass')
-                    # plt.plot(range(808),true_mass_history,'o',label='true mass')
-                    plt.plot(true_mass_history, pred_mass_history, 'o')
-                    # plt.legend(loc='best')
-                    plt.xlabel('True mass')
-                    plt.ylabel('Predicted mass')
-                    plt.savefig("more_CNN_performance_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
+                if test_batch == num_inference_iterations:
+                    # plt.plot(range(808),pred_mass_history,"o",label="predicted mass")
+                    # plt.plot(range(808),true_mass_history,"o",label="true mass")
+                    plt.plot(true_mass_history, pred_mass_history, "o")
+                    # plt.legend(loc="best")
+                    plt.xlabel("True mass")
+                    plt.ylabel("Predicted mass")
+                    plt.savefig("more_CNN_performance_itr" + str(num_iterations) + "time" + str(int(time.time()))
+                                + ".pdf")
                     plt.show()
                     sys.exit()
 
@@ -796,9 +801,9 @@ if __name__ == '__main__':
                 gamma_history.append(model.gamma.item())
 
                 end = time.time()
-                print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss} "
-                      f"updated train loss = {updated_loss.item()} updated test loss = {updated_test_loss.item()} "
-                      f"train time = {train_time}  test time = {end - start}")
+                print(f"iteration = {batch}\t|\tloss = {loss}  test_loss = {test_loss}"
+                      f"\t|\tupdated train loss = {updated_loss.item()} updated test loss = {updated_test_loss.item()}"
+                      f"\t|\ttrain time = {train_time}  test time = {end - start}")
 
                 start = time.time()
                 # print(_x)
@@ -806,38 +811,38 @@ if __name__ == '__main__':
 
         if batch == num_iterations - 1:
             end = time.time()
-            print(f"iteration = {batch}   loss = {loss}  test_loss = {test_loss}  train time = {train_time}  "
+            print(f"iteration = {batch}\t|\tloss = {loss}  test_loss = {test_loss}\t|\ttrain time = {train_time}  "
                   f"test time = {end - start}")
             break
 
     if save_model:
         torch.save(model.state_dict(), "CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pt")
 
-    plt.plot(graph_x_axis, train_loss_history, label='training loss')
-    plt.plot(graph_x_axis, test_loss_history, label='testing loss')
-    plt.title('CNN training performance')
-    plt.legend(loc='best')
+    plt.plot(graph_x_axis, train_loss_history, label="training loss")
+    plt.plot(graph_x_axis, test_loss_history, label="testing loss")
+    plt.title("CNN training performance")
+    plt.legend(loc="best")
     plt.savefig("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
 
     plt.figure()
     plt.plot(graph_x_axis, gamma_history)
-    plt.title('CNN gamma history, ' + str(num_iterations) + ' iterations, ' + str(int(time.time())))
+    plt.title("CNN gamma history, " + str(num_iterations) + " iterations, " + str(int(time.time())))
     plt.savefig("CNN_gamma_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".pdf")
 
     if plot_with_plotly:
         import plotly.express as px
         import plotly.io as pi
 
-        data_frame = {'iterations': graph_x_axis, 'training loss': train_loss_history,
-                      'testing loss': test_loss_history}
-        fig = px.line(data_frame, x='iterations', y=["training loss", "testing loss"],
-                      title='CNN training performance, ' + str(num_iterations) + 'iterations, ' + str(int(time.time())),
-                      labels={'value': 'loss'})
+        data_frame = {"iterations": graph_x_axis, "training loss": train_loss_history,
+                      "testing loss": test_loss_history}
+        fig = px.line(data_frame, x="iterations", y=["training loss", "testing loss"],
+                      title="CNN training performance, " + str(num_iterations) + "iterations, " + str(int(time.time())),
+                      labels={"value": "loss"})
         fig.write_html("CNN_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
 
-        data_frame2 = {'iterations': graph_x_axis, 'gamma': gamma_history}
-        fig2 = px.line(data_frame2, x='iterations', y='gamma',
-                       title='CNN gamma history, ' + str(num_iterations) + ' iterations, ' + str(int(time.time())))
+        data_frame2 = {"iterations": graph_x_axis, "gamma": gamma_history}
+        fig2 = px.line(data_frame2, x="iterations", y="gamma",
+                       title="CNN gamma history, " + str(num_iterations) + " iterations, " + str(int(time.time())))
         fig2.write_html("CNN_gamma_itr" + str(num_iterations) + "time" + str(int(time.time())) + ".html")
 
     plt.show()
