@@ -7,6 +7,14 @@ import argparse, sys, json
 
 
 def get_halo_mass(sims):
+    """
+    Extracts halo mass from particles.npy files generated
+    Args:
+        sims (List): [list of simulation numbers to use]
+
+    Returns:
+        [HALO_mass]: [list of halo masses from simulation]
+    """
     HALO_mass = []
     for sim_index in sims:
         # loading halo masses
@@ -19,6 +27,14 @@ def get_halo_mass(sims):
 
 
 def get_sim_list(sims):
+    """Loads the training and test particles of a given set of simulations.
+
+    Args:
+        sims ([list]): [list of simulations to use]
+
+    Returns:
+        list,list: [list of simulations,list of test particles]
+    """
     SIM_list = []
     TEST_num_particles = []
     for sim_index in sims:
@@ -131,6 +147,9 @@ def which_sim(num):
 
 
 class TrainingDataset(torch.utils.data.Dataset):
+    """
+        Dataset object from the training dataset. Has builtin methods that allow for basic manipulation.
+    """
 
     def __init__(self):
         self.output_data = []
@@ -162,6 +181,9 @@ class TrainingDataset(torch.utils.data.Dataset):
 
 
 class TestingDataset(torch.utils.data.Dataset):
+    """[summary]
+        Dataset object for test data from a specific simulation
+    """
 
     def __init__(self):
         self.OUTPUT_data = []
