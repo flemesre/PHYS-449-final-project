@@ -12,5 +12,5 @@ The project consists of a reproduction (and attempted improvement) of the result
 
 DATA: https://console.cloud.google.com/storage/browser/deep-halos-data;tab=objects?forceOnBucketsSortingFiltering=false&cloudshell=false&hl=en-AU&project=deephalos&prefix=&forceOnObjectsSortingFiltering=false
 
-Github: https://github.com/lluciesmith/DeepHalos
+GitHub: https://github.com/lluciesmith/DeepHalos
 
